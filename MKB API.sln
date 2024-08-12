@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MKB", "MKB\MKB.csproj", "{B0009F5C-39A6-4833-9986-BE7FD1C70853}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MKB_Helper", "MKB_Helper\MKB_Helper.csproj", "{ED162837-5478-467B-8CEB-6ADDE0F77500}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B0009F5C-39A6-4833-9986-BE7FD1C70853}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0009F5C-39A6-4833-9986-BE7FD1C70853}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0009F5C-39A6-4833-9986-BE7FD1C70853}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0009F5C-39A6-4833-9986-BE7FD1C70853}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED162837-5478-467B-8CEB-6ADDE0F77500}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED162837-5478-467B-8CEB-6ADDE0F77500}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED162837-5478-467B-8CEB-6ADDE0F77500}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED162837-5478-467B-8CEB-6ADDE0F77500}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7E13231B-B256-4736-B98F-69CE5E9DA378}
+	EndGlobalSection
+EndGlobal
