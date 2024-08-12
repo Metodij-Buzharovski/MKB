@@ -8,11 +8,19 @@ using MKB.Models;
 ApplicationDbContext _db = new ApplicationDbContext();
 List< AspNetUser> rowsToUpdate = _db.AspNetUsers.Where(u => u.LegalEntityId !=null).ToList();
 
-int id = 1367;
-for (int i=0;i<rowsToUpdate.Count && id<=2732;i++)
+int id = 2733;
+for (int i=0;i<rowsToUpdate.Count; i++)
 {
-    rowsToUpdate[i].LegalEntityId = id;
-    id++;
+    if(id <= 3732)
+    {
+        rowsToUpdate[i].LegalEntityId = id;
+        id++;
+    }
+    else
+    {
+        rowsToUpdate[i].LegalEntityId = null;
+    }
+    
 }
 
 _db.SaveChanges();
