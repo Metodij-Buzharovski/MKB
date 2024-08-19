@@ -54,5 +54,20 @@ namespace MKB.Controllers
 
             return Ok(query);
         }
+
+        [HttpGet("TipIzvestaj/{id}")]
+        public IActionResult TipIzvestaj(int id)
+        {
+            var query = (from iw in _db.KbIzvestaiWeb
+                         join pl in _db.KbWebPravniLica
+                         on iw.LegalEntityId equals pl.LegalEntityId
+                         where iw.TipIzvestaj == id
+                         select new
+                         {
+                             pl.CompanyName,
+                             iw.TipIzvestaj
+                         }).Distinct();
+            return Ok(query);
+        }
     }
 }
