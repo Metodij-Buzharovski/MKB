@@ -25,7 +25,7 @@ namespace MKB.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AspNetUser>>> GetAspNetUsers()
         {
-            return await _context.AspNetUsers.Take(100).ToListAsync();
+            return await _context.AspNetUsers.ToListAsync();
         }
 
         // GET: api/AspNetUsers/5

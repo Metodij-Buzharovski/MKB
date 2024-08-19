@@ -18,27 +18,27 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
 
-    public virtual DbSet<KbBaranjaWeb> KbBaranjaWebs { get; set; }
+    public virtual DbSet<KbBaranjaWeb> KbBaranjaWeb { get; set; }
 
-    public virtual DbSet<KbIzvestaiWeb> KbIzvestaiWebs { get; set; }
+    public virtual DbSet<KbIzvestaiWeb> KbIzvestaiWeb { get; set; }
 
-    public virtual DbSet<KbNacinPlakanje> KbNacinPlakanjes { get; set; }
+    public virtual DbSet<KbNacinPlakanje> KbNacinPlakanje { get; set; }
 
-    public virtual DbSet<KbStatusBaranjeWeb> KbStatusBaranjeWebs { get; set; }
+    public virtual DbSet<KbStatusBaranjeWeb> KbStatusBaranjeWeb { get; set; }
 
-    public virtual DbSet<KbWebKorisnikAktivnost> KbWebKorisnikAktivnosts { get; set; }
+    public virtual DbSet<KbWebKorisnikAktivnost> KbWebKorisnikAktivnosti { get; set; }
 
-    public virtual DbSet<KbWebLogPrebaraniKompanii> KbWebLogPrebaraniKompaniis { get; set; }
+    public virtual DbSet<KbWebLogPrebaraniKompanii> KbWebLogPrebaraniKompanii { get; set; }
 
-    public virtual DbSet<KbWebModuli> KbWebModulis { get; set; }
+    public virtual DbSet<KbWebModuli> KbWebModuli { get; set; }
 
-    public virtual DbSet<KbWebPaketiM> KbWebPaketiMs { get; set; }
+    public virtual DbSet<KbWebPaketiM> KbWebPaketiM { get; set; }
 
-    public virtual DbSet<KbWebPravniLica> KbWebPravniLicas { get; set; }
+    public virtual DbSet<KbWebPravniLica> KbWebPravniLica { get; set; }
 
-    public virtual DbSet<KbWebTipPrebaruvanje> KbWebTipPrebaruvanjes { get; set; }
+    public virtual DbSet<KbWebTipPrebaruvanje> KbWebTipPrebaruvanja { get; set; }
 
-    public virtual DbSet<KbWebTipUsluga> KbWebTipUslugas { get; set; }
+    public virtual DbSet<KbWebTipUsluga> KbWebTipUslugi { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
