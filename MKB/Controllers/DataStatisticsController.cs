@@ -15,6 +15,7 @@ namespace MKB.Controllers
             _db = db;
         }
 
+        //Најкористени** подмодули ** - најмногу записи имаат во база во WebKorisnikAktivnost
         [HttpGet("NajkoristeniPodmoduli")]
         public IActionResult NajkoristeniPodmoduli()
         {
@@ -36,6 +37,7 @@ namespace MKB.Controllers
             return Ok(query);
         }
 
+        //- Трошење на пари и поени по компанија
         [HttpGet("PotrosheniSredstvaPoKompanija")]
         public IActionResult PotrosheniSredstvaPoKompanija()
         {
@@ -56,6 +58,7 @@ namespace MKB.Controllers
             return Ok(query);
         }
 
+        //- Компании за кој е баран Х тип на извештај; Х - Сопствен, блокада или корпоративен
         [HttpGet("TipIzvestaj/{id}")]
         public IActionResult TipIzvestaj(int id)
         {
@@ -70,6 +73,40 @@ namespace MKB.Controllers
                          }).Distinct();
             return Ok(query);
         }
+
+        //- Најисплатливи** подмодули ** (најмногу денари се потрошени) - за активности со поени да помножи со цена 
+        //на поен(Цена на пакет / вкупно поени во пакет), но да се вратат и поените.Да се игнорираат бесплатните подмодули.
+        [HttpGet("NajisplativiPodmoduli")]
+        public IActionResult NajisplativiPodmoduli()
+        {
+            var query = (from wm in _db.KbWebModuli
+                         join wka in _db.KbWebKorisnikAktivnosti
+                         on new { ModulId = wm.ModulId, PodModulId = wm.PodModulId } equals new { ModulId = wka.ModulId ?? 0, PodModulId = wka.PodModulId ?? 0 }
+                         join wp in _db.KbWebPaketiM
+                         on wka.PaketId equals wp.PaketId into wpJoin
+                         from wp in wpJoin.DefaultIfEmpty() // Left join
+                         where wm.Cena > 0 && wm.Poeni > 0
+                         group new { wka, wp } by new { wm.ModulId, wm.NazivModul, wm.PodModulId, wm.NazivPodModul } into g
+                         select new
+                         {
+                             ModulId = g.Key.ModulId,
+                             NazivModul = g.Key.NazivModul.Trim(),
+                             PodModulId = g.Key.PodModulId,
+                             NazivPodModul = g.Key.NazivPodModul.Trim(),
+                             Vkupno_Denari = g.Sum(x => x.wka.Cena + (x.wka.Poeni > 0 ? x.wka.Poeni * (x.wp != null ? x.wp.CenaPoen : 0) : 0)),
+                             Vkupno_Poeni = g.Sum(x => x.wka.Poeni)
+                         });
+
+            return Ok(query);
+        }
+
+
+
+
+
+
+
+        //-------------------------------------------------------------------------------------------------------------
 
         // Трошење на поени по компанија по модул.
         // Endpoint кој ќе прима ЕМБС на компанија и ќе враќа колку поени потрошиле по модул
@@ -204,4 +241,4 @@ namespace MKB.Controllers
         }
     }
 }
-}
+
