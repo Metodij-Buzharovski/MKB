@@ -37,7 +37,7 @@ namespace MKB.Controllers
             return Ok(query);
         }
 
-        //- Трошење на пари и поени по компанија
+        //- Трошење на пари и поени по компанија ? sto e ind plateno
         [HttpGet("PotrosheniSredstvaPoKompanija")]
         public IActionResult PotrosheniSredstvaPoKompanija()
         {
@@ -58,7 +58,7 @@ namespace MKB.Controllers
             return Ok(query);
         }
 
-        //- Компании за кој е баран Х тип на извештај; Х - Сопствен, блокада или корпоративен
+        //- Компании за кој е баран Х тип на извештај; Х - Сопствен, блокада или корпоративен  ?nema tip izvestaj tabela
         [HttpGet("TipIzvestaj/{id}")]
         public IActionResult TipIzvestaj(int id)
         {
@@ -75,7 +75,7 @@ namespace MKB.Controllers
         }
 
         //- Најисплатливи** подмодули ** (најмногу денари се потрошени) - за активности со поени да помножи со цена 
-        //на поен(Цена на пакет / вкупно поени во пакет), но да се вратат и поените.Да се игнорираат бесплатните подмодули.
+        //на поен(Цена на пакет / вкупно поени во пакет), но да се вратат и поените.Да се игнорираат бесплатните подмодули. ? sto e ind plateno
         [HttpGet("NajisplativiPodmoduli")]
         public IActionResult NajisplativiPodmoduli()
         {
@@ -99,6 +99,48 @@ namespace MKB.Controllers
 
             return Ok(query);
         }
+
+
+        //- Начин на плаќање за сите записи во база (вкупно уплати со поени, ПП30 и картичка) ? ind plateno, nema karticka
+        [HttpGet("NacinPlakjanje")]
+        public IActionResult NacinPlakjanje()
+        {
+            var query = (from wka in _db.KbWebKorisnikAktivnosti
+                         join np in _db.KbNacinPlakanje
+                         on wka.NacinPlakanje equals np.NacinPlakanje
+                         where np.OpisNacinPlakanje == "поени" || np.OpisNacinPlakanje == "ПП30"
+                         group np by np.OpisNacinPlakanje into g
+                         select new
+                         {
+                             OpisNacinPlakanje = g.Key,
+                             Vkupno_Uplati = g.Count()
+                         });
+
+            return Ok(query);
+        }
+
+
+        //- Начин на плаќање по тип услуга ? ind plateno
+        [HttpGet("NacinPlakjanjePoTipUsluga")]
+        public IActionResult NacinPlakjanjePoTipUsluga()
+        {
+            var query = (from wka in _db.KbWebKorisnikAktivnosti
+                         join wtu in _db.KbWebTipUslugi
+                         on wka.TipUsluga equals wtu.TipUsluga
+                         join np in _db.KbNacinPlakanje
+                         on wka.NacinPlakanje equals np.NacinPlakanje
+                         select new
+                         {
+                             KorisnikWebID = wka.KorisnikWebId,
+                             OpisTipUsluga = wtu.OpisTipUsluga,
+                             OpisNacinPlakanje = np.OpisNacinPlakanje
+                         })
+                      .OrderBy(x => x.OpisTipUsluga);
+
+            return Ok(query);
+        }
+
+
 
 
 
