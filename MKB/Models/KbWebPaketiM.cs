@@ -38,4 +38,6 @@ public partial class KbWebPaketiM
     public DateTime DatumVnes { get; set; }
 
     public string UserName { get; set; } = null!;
+
+    public virtual ICollection<KbWebKorisnikPaket> KbWebKorisnikPakets { get; set; } = new List<KbWebKorisnikPaket>();
 }

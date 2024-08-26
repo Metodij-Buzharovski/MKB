@@ -40,9 +40,13 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<KbWebTipUsluga> KbWebTipUslugi { get; set; }
 
+    public virtual DbSet<KbWebLogKompaniiSporedba> KbWebLogKompaniiSporedbi { get; set; }
+
+    public virtual DbSet<KbWebKorisnikPaket> KbWebKorisnikPaketi { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-JTIRNBH\\SQLEXPRESS;Database=MKB;Trusted_Connection=True;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=DESKTOP-JTIRNBH\\SQLEXPRESS;Database=MKB;Trusted_Connection=True;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,9 +68,7 @@ public partial class ApplicationDbContext : DbContext
                 .HasMaxLength(13)
                 .IsUnicode(false)
                 .HasColumnName("EMBG");
-            entity.Property(e => e.JobTitle)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+            entity.Property(e => e.JobTitle).HasMaxLength(50);
             entity.Property(e => e.LastName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -205,6 +207,68 @@ public partial class ApplicationDbContext : DbContext
                 .HasConstraintName("FK_KB_WebKorisnikAktivnost_KB_NacinPlakanje");
         });
 
+        modelBuilder.Entity<KbWebKorisnikPaket>(entity =>
+        {
+            entity.HasKey(e => e.KorisnikWebId);
+
+            entity.ToTable("KB_WebKorisnikPaket");
+
+            entity.Property(e => e.KorisnikWebId)
+                .ValueGeneratedNever()
+                .HasColumnName("KorisnikWebID");
+            entity.Property(e => e.BrDopSubjektiMonitoring).HasDefaultValue((short)0);
+            entity.Property(e => e.DatKrajPaket).HasMaxLength(50);
+            entity.Property(e => e.DatPocPaket).HasMaxLength(50);
+            entity.Property(e => e.DatumVnes).HasMaxLength(50);
+            entity.Property(e => e.LegalEntityId).HasColumnName("LegalEntityID");
+            entity.Property(e => e.UserName)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.KorisnikWeb).WithOne(p => p.KbWebKorisnikPaket)
+                .HasPrincipalKey<AspNetUser>(p => p.UserWebId)
+                .HasForeignKey<KbWebKorisnikPaket>(d => d.KorisnikWebId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_KB_WebKorisnikPaket_AspNetUsers");
+
+            entity.HasOne(d => d.LegalEntity).WithMany(p => p.KbWebKorisnikPakets)
+                .HasForeignKey(d => d.LegalEntityId)
+                .HasConstraintName("FK_KB_WebKorisnikPaket_KB_WebPravniLica");
+
+            entity.HasOne(d => d.Paket).WithMany(p => p.KbWebKorisnikPakets)
+                .HasForeignKey(d => d.PaketId)
+                .HasConstraintName("FK_KB_WebKorisnikPaket_KB_WebPaketiM");
+        });
+
+        modelBuilder.Entity<KbWebLogKompaniiSporedba>(entity =>
+        {
+            entity.ToTable("KB_WebLogKompaniiSporedba");
+
+            entity.Property(e => e.AktivnostId)
+                .HasMaxLength(50)
+                .HasColumnName("AktivnostID");
+            entity.Property(e => e.Datum)
+                .HasMaxLength(8)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.Edb)
+                .HasMaxLength(13)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("EDB");
+            entity.Property(e => e.Embs)
+                .HasMaxLength(7)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("EMBS");
+            entity.Property(e => e.KorisnikWebId).HasColumnName("KorisnikWebID");
+            entity.Property(e => e.SessionId).HasColumnName("SessionID");
+            entity.Property(e => e.Vreme)
+                .HasMaxLength(8)
+                .IsUnicode(false)
+                .IsFixedLength();
+        });
+
         modelBuilder.Entity<KbWebLogPrebaraniKompanii>(entity =>
         {
             entity.ToTable("KB_WebLogPrebaraniKompanii");
@@ -285,13 +349,11 @@ public partial class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<KbWebPravniLica>(entity =>
         {
-            entity.HasKey(e => e.LegalEntityId).HasName("PK__KB_WebPr__5266B182FDE91B7B");
+            entity.HasKey(e => e.LegalEntityId).HasName("PK__KB_WebPr__5266B18248CAD9E6");
 
             entity.ToTable("KB_WebPravniLica");
 
-            entity.Property(e => e.City)
-                .HasMaxLength(30)
-                .IsUnicode(false);
+            entity.Property(e => e.City).HasMaxLength(30);
             entity.Property(e => e.CompanyAddress).HasMaxLength(128);
             entity.Property(e => e.ContractDate)
                 .HasMaxLength(8)

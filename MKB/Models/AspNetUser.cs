@@ -77,5 +77,7 @@ public partial class AspNetUser
 
     public virtual ICollection<KbWebKorisnikAktivnost> KbWebKorisnikAktivnosts { get; set; } = new List<KbWebKorisnikAktivnost>();
 
+    public virtual KbWebKorisnikPaket? KbWebKorisnikPaket { get; set; }
+
     public virtual KbWebPravniLica? LegalEntity { get; set; }
 }

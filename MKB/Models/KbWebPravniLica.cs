@@ -44,4 +44,6 @@ public partial class KbWebPravniLica
     public bool? IndPotvrdenaKompanija { get; set; }
 
     public virtual ICollection<AspNetUser> AspNetUsers { get; set; } = new List<AspNetUser>();
+
+    public virtual ICollection<KbWebKorisnikPaket> KbWebKorisnikPakets { get; set; } = new List<KbWebKorisnikPaket>();
 }
