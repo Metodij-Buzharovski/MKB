@@ -141,6 +141,28 @@ namespace MKB.Controllers
         }
 
 
+        //- - Генерирани барања за извештаи по статус на барањето ? dali treba tip izvestaj
+        [HttpGet("GeneriraniBaranjaZaIzvestaiPoStatusBaranje")]
+        public IActionResult GeneriraniBaranjaZaIzvestaiPoStatusBaranje()
+        {
+            var query = (from bw in _db.KbBaranjaWeb
+                         join iw in _db.KbIzvestaiWeb
+                         on bw.IzvestajWebId equals iw.IzvestajWebId
+                         join sbw in _db.KbStatusBaranjeWeb
+                         on bw.StatusBaranjeWeb equals sbw.StatusBaranjeWeb
+                         select new
+                         {
+                             BaranjeWebID = bw.BaranjeWebId,
+                             OpisStatusBaranjeWeb = sbw.OpisStatusBaranjeWeb,
+                             IzvestajWebID = iw.IzvestajWebId
+                         })
+                      .OrderBy(x => x.OpisStatusBaranjeWeb)
+                      .ToList();
+
+            return Ok(query);
+        }
+
+
 
 
 
