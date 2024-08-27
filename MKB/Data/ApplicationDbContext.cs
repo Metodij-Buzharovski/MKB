@@ -44,6 +44,8 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<KbWebKorisnikPaket> KbWebKorisnikPaketi { get; set; }
 
+    public virtual DbSet<KbWebLogFilterKriterium> KbWebLogFilterKriteriumi { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=DESKTOP-JTIRNBH\\SQLEXPRESS;Database=MKB;Trusted_Connection=True;TrustServerCertificate=True");
@@ -238,6 +240,31 @@ public partial class ApplicationDbContext : DbContext
             entity.HasOne(d => d.Paket).WithMany(p => p.KbWebKorisnikPakets)
                 .HasForeignKey(d => d.PaketId)
                 .HasConstraintName("FK_KB_WebKorisnikPaket_KB_WebPaketiM");
+        });
+
+        modelBuilder.Entity<KbWebLogFilterKriterium>(entity =>
+        {
+            entity.ToTable("KB_WebLogFilterKriterium");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.BrVrab).IsUnicode(false);
+            entity.Property(e => e.Datum)
+                .HasMaxLength(8)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.GodinaOsnovanje).IsUnicode(false);
+            entity.Property(e => e.Izlozenost).IsUnicode(false);
+            entity.Property(e => e.Konkurencija).IsUnicode(false);
+            entity.Property(e => e.Prihod).IsUnicode(false);
+            entity.Property(e => e.Profit).IsUnicode(false);
+            entity.Property(e => e.Sediste).IsUnicode(false);
+            entity.Property(e => e.Sektor).IsUnicode(false);
+            entity.Property(e => e.TipKompanija).IsUnicode(false);
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.Vreme)
+                .HasMaxLength(8)
+                .IsUnicode(false)
+                .IsFixedLength();
         });
 
         modelBuilder.Entity<KbWebLogKompaniiSporedba>(entity =>
