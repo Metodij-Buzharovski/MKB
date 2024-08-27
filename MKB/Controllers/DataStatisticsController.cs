@@ -153,7 +153,7 @@ namespace MKB.Controllers
         // Трошење на поени по компанија по модул.
         // Endpoint кој ќе прима ЕМБС на компанија и ќе враќа колку поени потрошиле по модул
 
-        [HttpGet("company/points")]
+        [HttpGet("company-points-spent-module")]
         public IActionResult PointsPerCompanyForModule([FromQuery(Name = "id")] string embs)
         {
             var query = from a in _db.AspNetUsers
@@ -182,7 +182,7 @@ namespace MKB.Controllers
 
         // Корисници со непотврдена Email адреса
 
-        [HttpGet("email/unconfirmed")]
+        [HttpGet("user-unconfirmed-email")]
         public IActionResult UnconfirmedEmails()
         {
             var query = _db.AspNetUsers
@@ -196,7 +196,7 @@ namespace MKB.Controllers
         // (број на компании претплатени на Стандард, Бизнис, Премиум и Персонализиран)
         // (сите персонализирани заедно во еден податок)
 
-        [HttpGet("companies/packets")]
+        [HttpGet("companies-active-packets")]
         public IActionResult NumberActivePacketsPerCompany()
         {
             var query = from a in _db.AspNetUsers
@@ -207,14 +207,14 @@ namespace MKB.Controllers
                         group kwm by kwm.NazivPaket into grouped
                         select new
                         {
-                            NazivPaket = grouped.Key,
+                            NazivPaket = grouped.Key.Trim(),
                             Firmi = grouped.Count()
                         };
             return Ok(query);
         }
 
         // Купени извештаи по начин плаќање
-        [HttpGet("payment/usluga")]
+        [HttpGet("payment-type-reports")]
         public IActionResult NacinPlakanjeNaTipUsluga()
         {
             var query = from a in _db.AspNetUsers
@@ -243,7 +243,7 @@ namespace MKB.Controllers
         // Корисници кои го деактивирале/избришале профилот во истиот месец кога и го направиле
         // (DateIns и DateUpd се во ист месец и UserStatus e 0)
 
-        [HttpGet("user/deactivatedmonth")]
+        [HttpGet("user-profile-deactivated-same-month")]
         public IActionResult UserDeactivatedInTheSameMonth()
         {
             var query = _db.AspNetUsers
@@ -264,12 +264,11 @@ namespace MKB.Controllers
         // Корисници кои го деактивирале/избришале профилот и корисници кои креирале профил по ден за даден месец
         // месецот да е влезен параметар во API-то
 
-
-        [HttpGet("user/activated_deactived")]
-        public IActionResult UsersActivatedAndDeactivatedInAMonth([FromQuery(Name = "month")] string month)
+        [HttpGet("user-profile-changes/{month}")]
+        public IActionResult UsersActivatedAndDeactivatedInAMonth(int month)
         {
             var result = _db.AspNetUsers
-                .Where(z => z.DateIns.Substring(4, 2).Contains(month))
+                .Where(z => z.DateIns.Substring(4, 2).Contains(month.ToString()))
                 .OrderBy(z => z.DateIns)
                 .Select(z => new
                 {
@@ -279,6 +278,28 @@ namespace MKB.Controllers
                     z.DateUpd,
                     z.TimeUpd
                 });
+            return Ok(result);
+        }
+
+        // Активност на порталот по месец(да се враќаат цела активност заедно со описи на IDs)
+        [HttpGet("activity-per-month")]
+        public IActionResult ActivityPerMonthPerUser()
+        {
+            var result = from activity in _db.KbWebKorisnikAktivnosti
+                         let year = activity.DatumVnes.Year
+                         let month = activity.DatumVnes.Month
+                         group activity by new
+                         {
+                             KorisnikWebID = activity.KorisnikWebId,
+                             YearMonth = new { year, month }
+                         } into g
+                         select new
+                         {
+                             g.Key.KorisnikWebID,
+                             Month = $"{g.Key.YearMonth.year}-{g.Key.YearMonth.month:D2}", // Format month as "yyyy-MM"
+                             TotalSpent = g.Sum(x => x.Cena)
+                         };
+
             return Ok(result);
         }
     }
