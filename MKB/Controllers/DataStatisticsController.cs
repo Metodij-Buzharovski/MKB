@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MKB.Data;
 
 namespace MKB.Controllers
 {
+    [EnableCors("Policy1")]
     [Route("api/[controller]")]
     [ApiController]
     public class DataStatisticsController : ControllerBase
