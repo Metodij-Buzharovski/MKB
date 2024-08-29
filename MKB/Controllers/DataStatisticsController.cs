@@ -326,6 +326,32 @@ namespace MKB.Controllers
 
             return Ok(result);
         }
+
+        //Искористеност на главни филтри според пакетот на кој се претплатени
+        //(Според KorisnikWebID и датум на филтрирање да се најде пакетот)
+
+        [HttpGet("user-filters-usage")]
+        public IActionResult UsedFiltersBasedOnPacket()
+        {
+            var query = _db.KbWebKorisnikAktivnosti
+                .GroupBy(wk => new
+                {
+                    wk.KorisnikWebId,
+                    wk.UserName,
+                    // Extract year, month, and day for the date grouping
+                    wk.DatumVnes.Year,
+                    wk.DatumVnes.Month,
+                    wk.DatumVnes.Day
+                })
+                .Select(g => new
+                {
+                    g.Key.KorisnikWebId,
+                    FilterKoristen = g.Key.UserName,
+                    SumaPoeni = g.Sum(x => x.Poeni),
+                    DatumVnes = new DateTime(g.Key.Year, g.Key.Month, g.Key.Day).ToString("yyyyMMdd")
+                });
+            return Ok(query);
+        }
     }
 }
 
