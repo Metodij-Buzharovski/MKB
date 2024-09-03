@@ -6,21 +6,34 @@ using MKB.Models;
 
 
 ApplicationDbContext _db = new ApplicationDbContext();
-List< AspNetUser> rowsToUpdate = _db.AspNetUsers.Where(u => u.LegalEntityId !=null).ToList();
+var populatedRows = (from wka in _db.KbWebKorisnikAktivnosti
+                     join anu in _db.AspNetUsers
+                     on wka.KorisnikWebId equals anu.UserWebId
+                     where anu.LegalEntityId != null
+                     select new
+                     {
+                         anu.UserWebId,
+                         anu.LegalEntityId
+                     })
+                      .Distinct()
+                      .ToList();
 
-int id = 1;
-for (int i=0;i<rowsToUpdate.Count; i++)
+var unpopulatedRows = _db.KbWebLogIskoristeniPromoKodovi.ToList();
+
+Random rnd = new Random();
+int promoKodCount = _db.KbWebLogIskoristeniPromoKodovi.Count();
+for (int i=0; i<promoKodCount; i++)
 {
-    if(id <= 1367)
+    int randomTimes = rnd.Next(0, 21);
+    int randomRow = rnd.Next(1, promoKodCount);
+    for (int j = 0; i+j < promoKodCount && j < randomTimes; j++)
     {
-        rowsToUpdate[i].LegalEntityId = id;
-        id++;
+        unpopulatedRows[i + j].KorisnikWebId = populatedRows[randomRow].UserWebId;
+        unpopulatedRows[i + j].LegalEntityId = populatedRows[randomRow].LegalEntityId;
     }
-    else
-    {
-        rowsToUpdate[i].LegalEntityId = null;
-    }
-    
+    i += randomTimes;
 }
 
 _db.SaveChanges();
+
+Console.WriteLine(populatedRows.Where(u => u.UserWebId=435));

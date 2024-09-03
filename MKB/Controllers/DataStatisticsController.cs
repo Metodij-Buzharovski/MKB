@@ -186,6 +186,25 @@ namespace MKB.Controllers
         }
 
 
+        //- Компании кои искористиле промо код при плаќање
+        [HttpGet("KompaniiKoiKoristelePromoKod")]
+        public IActionResult KompaniiKoiKoristelePromoKod()
+        {
+            var query = (from wka in _db.KbWebKorisnikAktivnosti
+                     join anu in _db.AspNetUsers
+                     on wka.KorisnikWebId equals anu.UserWebId
+                     where anu.LegalEntityId != null
+                     select new
+                     {
+                         anu.UserWebId,
+                         anu.LegalEntityId
+                     })
+                      .Distinct()
+                      .ToList();
+
+            return Ok(query);
+        }
+
 
 
 

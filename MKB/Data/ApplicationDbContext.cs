@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using MKB.Models;
+using WebApplication1.Models;
 
 namespace MKB.Data;
 
@@ -46,9 +47,11 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<KbWebLogFilterKriterium> KbWebLogFilterKriteriumi { get; set; }
 
+    public virtual DbSet<KbWebLogIskoristeniPromoKodovi> KbWebLogIskoristeniPromoKodovi { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-JTIRNBH\\SQLEXPRESS;Database=MKB;Trusted_Connection=True;TrustServerCertificate=True");
+         => optionsBuilder.UseSqlServer("Server=DESKTOP-JTIRNBH\\SQLEXPRESS;Database=MKB;Trusted_Connection=True;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -265,6 +268,22 @@ public partial class ApplicationDbContext : DbContext
                 .HasMaxLength(8)
                 .IsUnicode(false)
                 .IsFixedLength();
+        });
+
+        modelBuilder.Entity<KbWebLogIskoristeniPromoKodovi>(entity =>
+        {
+            entity.ToTable("KB_WebLogIskoristeniPromoKodovi");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.AktivnostId).HasColumnName("AktivnostID");
+            entity.Property(e => e.Embs)
+                .HasMaxLength(7)
+                .IsUnicode(false)
+                .HasColumnName("EMBS");
+            entity.Property(e => e.KorisnikWebId).HasColumnName("KorisnikWebID");
+            entity.Property(e => e.LegalEntityId).HasColumnName("LegalEntityID");
+            entity.Property(e => e.PromoKod).HasMaxLength(20);
+            entity.Property(e => e.UserName).HasMaxLength(32);
         });
 
         modelBuilder.Entity<KbWebLogKompaniiSporedba>(entity =>
