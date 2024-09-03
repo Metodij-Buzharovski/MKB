@@ -186,21 +186,22 @@ namespace MKB.Controllers
         }
 
 
-        //- Компании кои искористиле промо код при плаќање
+        //- Компании кои искористиле промо код при плаќање ? ind plateno
         [HttpGet("KompaniiKoiKoristelePromoKod")]
         public IActionResult KompaniiKoiKoristelePromoKod()
         {
-            var query = (from wka in _db.KbWebKorisnikAktivnosti
-                     join anu in _db.AspNetUsers
-                     on wka.KorisnikWebId equals anu.UserWebId
-                     where anu.LegalEntityId != null
-                     select new
-                     {
-                         anu.UserWebId,
-                         anu.LegalEntityId
-                     })
-                      .Distinct()
-                      .ToList();
+            var query = (from ipk in _db.KbWebLogIskoristeniPromoKodovi
+                         join wka in _db.KbWebKorisnikAktivnosti
+                         on ipk.AktivnostId equals wka.Id
+                         join pl in _db.KbWebPravniLica
+                         on ipk.LegalEntityId equals pl.LegalEntityId
+                         where wka.IndPlateno == true
+                         select new
+                         {
+                             pl.LegalEntityId,
+                             pl.CompanyName,
+                             ipk.PromoKod
+                         });
 
             return Ok(query);
         }

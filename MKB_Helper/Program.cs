@@ -35,5 +35,3 @@ for (int i=0; i<promoKodCount; i++)
 }
 
 _db.SaveChanges();
-
-Console.WriteLine(populatedRows.Where(u => u.UserWebId=435));
