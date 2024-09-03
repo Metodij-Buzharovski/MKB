@@ -70,6 +70,8 @@ namespace MKB.Controllers
                          where iw.TipIzvestaj == id
                          select new
                          {
+                             pl.LegalEntityId,
+                             pl.Embs,
                              pl.CompanyName,
                              iw.TipIzvestaj
                          }).Distinct();
@@ -111,10 +113,11 @@ namespace MKB.Controllers
                          join np in _db.KbNacinPlakanje
                          on wka.NacinPlakanje equals np.NacinPlakanje
                          where np.OpisNacinPlakanje == "поени" || np.OpisNacinPlakanje == "ПП30"
-                         group np by np.OpisNacinPlakanje into g
+                         group np by new { wka.NacinPlakanje, np.OpisNacinPlakanje } into g
                          select new
                          {
-                             OpisNacinPlakanje = g.Key,
+                             NacinPlakanje = g.Key.NacinPlakanje,
+                             OpisNacinPlakanje = g.Key.OpisNacinPlakanje,
                              Vkupno_Uplati = g.Count()
                          });
 
@@ -134,7 +137,9 @@ namespace MKB.Controllers
                          select new
                          {
                              KorisnikWebID = wka.KorisnikWebId,
+                             TipUsluga = wtu.TipUsluga,
                              OpisTipUsluga = wtu.OpisTipUsluga,
+                             NacinPlakanje = np.NacinPlakanje,
                              OpisNacinPlakanje = np.OpisNacinPlakanje
                          })
                       .OrderBy(x => x.OpisTipUsluga);
@@ -143,7 +148,7 @@ namespace MKB.Controllers
         }
 
 
-        //- - Генерирани барања за извештаи по статус на барањето ? dali treba tip izvestaj
+        //- - Генерирани барања за извештаи по статус на барањето 
         [HttpGet("GeneriraniBaranjaZaIzvestaiPoStatusBaranje")]
         public IActionResult GeneriraniBaranjaZaIzvestaiPoStatusBaranje()
         {
@@ -152,14 +157,30 @@ namespace MKB.Controllers
                          on bw.IzvestajWebId equals iw.IzvestajWebId
                          join sbw in _db.KbStatusBaranjeWeb
                          on bw.StatusBaranjeWeb equals sbw.StatusBaranjeWeb
+                         group iw by new { bw.StatusBaranjeWeb, sbw.OpisStatusBaranjeWeb } into g
                          select new
                          {
-                             BaranjeWebID = bw.BaranjeWebId,
-                             OpisStatusBaranjeWeb = sbw.OpisStatusBaranjeWeb,
-                             IzvestajWebID = iw.IzvestajWebId
+                             StatusBaranjeWeb = g.Key.StatusBaranjeWeb,
+                             OpisStatusBaranjeWeb = g.Key.OpisStatusBaranjeWeb,
+                             Broj_Izvestai = g.Count(x => x.IzvestajWebId != null)
                          })
-                      .OrderBy(x => x.OpisStatusBaranjeWeb)
-                      .ToList();
+                      .OrderBy(x => x.OpisStatusBaranjeWeb);
+
+            return Ok(query);
+        }
+
+        //Активности по статус претплата
+        [HttpGet("AktivnostiPoStatusPretplata")]
+        public IActionResult AktivnostiPoStatusPretplata()
+        {
+            var query = (from wka in _db.KbWebKorisnikAktivnosti
+                         group wka by wka.StatusPretplata into g
+                         select new
+                         {
+                             StatusPretplata = g.Key,
+                             Br_Aktivnosti = g.Count()
+                         })
+                      .OrderBy(x => x.StatusPretplata);
 
             return Ok(query);
         }
