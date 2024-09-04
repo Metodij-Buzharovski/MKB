@@ -208,6 +208,32 @@ namespace MKB.Controllers
 
 
 
+        //- Компании кои не се претплатиле на пакет откако им истекол стариот. Да враќа и за тие што повторно СЕ претплатиле.
+        //- компании кои имаат доплатено за дополнителни поени при претплата на пакет (hint: во истата активност за пакет ќе е пополнета колоната за дополнителни поени во база) todo
+        [HttpGet("KompaniiPretplateniNaPaket")]
+        public IActionResult KompaniiPretplateniNaPaket()
+        {
+            var query = (from wkp in _db.KbWebKorisnikPaketi
+                         join wp in _db.KbWebPaketiM
+                         on wkp.PaketId equals wp.PaketId
+                         join pl in _db.KbWebPravniLica
+                         on wkp.LegalEntityId equals pl.LegalEntityId
+                         where wkp.DatPocPaket != null
+                         select new
+                         {
+                             pl.LegalEntityId,
+                             pl.CompanyName,
+                             wp.PaketId,
+                             wp.NazivPaket
+                         })
+                      .Distinct();
+
+            return Ok(query);
+        }
+
+
+
+
 
 
 
@@ -409,7 +435,7 @@ namespace MKB.Controllers
                         {
                             g.Key.UserId,
                             g.Key.Datum,
-                            g.Key.NazivPaket,
+                            NazivPaket = g.Key.NazivPaket.Trim(),
                             MainFilterAndSubFilterUsed = g.Count(x => x.kwlf.Sektor != null) + g.Count(x => x.kwlf.Sediste != null)
                         };
 

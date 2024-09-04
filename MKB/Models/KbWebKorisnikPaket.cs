@@ -21,13 +21,13 @@ public partial class KbWebKorisnikPaket
 
     public short? BrDopSubjektiMonitoring { get; set; }
 
-    public string? DatPocPaket { get; set; }
+    public DateTime? DatPocPaket { get; set; }
 
-    public string? DatKrajPaket { get; set; }
+    public DateTime? DatKrajPaket { get; set; }
 
     public short? PreostanatiPoeni { get; set; }
 
-    public string? DatumVnes { get; set; }
+    public DateTime DatumVnes { get; set; }
 
     public string UserName { get; set; } = null!;
 
