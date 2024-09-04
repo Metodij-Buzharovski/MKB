@@ -393,6 +393,29 @@ namespace MKB.Controllers
                 });
             return Ok(query);
         }
+
+        //Искористеност на главни филтри според пакетот на кој се претплатени
+        //(Според KorisnikWebID и датум на филтрирање да се најде пакетот)
+        [HttpGet("FiltriKoristeniSporedPretplata")]
+        public IActionResult FiltriKoristeniSporedPretplata()
+        {
+            var result = from kwlf in _db.KbWebLogFilterKriteriumi
+                        join kwa in _db.KbWebKorisnikAktivnosti
+                        on kwlf.UserId equals kwa.KorisnikWebId
+                        join kwm in _db.KbWebPaketiM
+                        on kwa.PaketId equals kwm.PaketId
+                        group new { kwlf, kwa, kwm } by new { kwlf.UserId, kwlf.Datum, kwm.NazivPaket } into g
+                        select new
+                        {
+                            g.Key.UserId,
+                            g.Key.Datum,
+                            g.Key.NazivPaket,
+                            MainFilterAndSubFilterUsed = g.Count(x => x.kwlf.Sektor != null) + g.Count(x => x.kwlf.Sediste != null)
+                        };
+
+            return Ok(result);
+        }
+
     }
 }
 
