@@ -208,8 +208,7 @@ namespace MKB.Controllers
 
 
 
-        //- Компании кои не се претплатиле на пакет откако им истекол стариот. Да враќа и за тие што повторно СЕ претплатиле.
-        //- компании кои имаат доплатено за дополнителни поени при претплата на пакет (hint: во истата активност за пакет ќе е пополнета колоната за дополнителни поени во база) todo
+        //- Компании кои не се претплатиле на пакет откако им истекол стариот. Да враќа и за тие што повторно СЕ претплатиле.     
         [HttpGet("KompaniiPretplateniNaPaket")]
         public IActionResult KompaniiPretplateniNaPaket()
         {
@@ -231,6 +230,52 @@ namespace MKB.Controllers
             return Ok(query);
         }
 
+
+
+        //- компании кои имаат доплатено за дополнителни поени при претплата на пакет
+        //(hint: во истата активност за пакет ќе е пополнета колоната за дополнителни поени во база) ? dali i koga dop poeni e 0
+        [HttpGet("KompaniiKoiDoplatileZaPoeni")]
+        public IActionResult KompaniiKoiDoplatileZaPoeni()
+        {
+            var query =
+                         //(from wka in _db.KbWebKorisnikAktivnosti
+                         // join anu in _db.AspNetUsers
+                         // on wka.KorisnikWebId equals anu.UserWebId
+                         // join pl in _db.KbWebPravniLica
+                         // on anu.LegalEntityId equals pl.LegalEntityId
+                         // join wp in _db.KbWebPaketiM
+                         // on wka.PaketId equals wp.PaketId
+                         // join wkp in _db.KbWebKorisnikPaketi
+                         // on new { wka.PaketId, wka.KorisnikWebId } equals new { wkp.PaketId, wkp.KorisnikWebId }
+                         // where wkp.DopolnitelniPoeni != null && wkp.DopolnitelniPoeni > 0
+                         // select new
+                         // {
+                         //     WebAktivnostId = wka.Id,
+                         //     wkp.KorisnikWebId,
+                         //     pl.LegalEntityId,
+                         //     pl.CompanyName,
+                         //     wp.PaketId,
+                         //     wp.NazivPaket,
+                         //     wkp.DopolnitelniPoeni
+                         // });
+                         (from wkp in _db.KbWebKorisnikPaketi
+                         join pl in _db.KbWebPravniLica
+                         on wkp.LegalEntityId equals pl.LegalEntityId
+                         join wp in _db.KbWebPaketiM
+                         on wkp.PaketId equals wp.PaketId
+                         where wkp.DopolnitelniPoeni != null && wkp.DopolnitelniPoeni > 0
+                         select new
+                         {
+                             wkp.KorisnikWebId,
+                             pl.LegalEntityId,
+                             pl.CompanyName,
+                             wp.PaketId,
+                             wp.NazivPaket,
+                             wkp.DopolnitelniPoeni
+                         });
+
+            return Ok(query);
+        }
 
 
 
