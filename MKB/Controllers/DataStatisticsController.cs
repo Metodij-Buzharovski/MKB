@@ -112,7 +112,7 @@ namespace MKB.Controllers
             var query = (from wka in _db.KbWebKorisnikAktivnosti
                          join np in _db.KbNacinPlakanje
                          on wka.NacinPlakanje equals np.NacinPlakanje
-                         where np.OpisNacinPlakanje == "поени" || np.OpisNacinPlakanje == "ПП30"
+                         where np.OpisNacinPlakanje == "поени" || np.OpisNacinPlakanje == "ПП30" || np.OpisNacinPlakanje == "CPay"
                          group np by new { wka.NacinPlakanje, np.OpisNacinPlakanje } into g
                          select new
                          {
@@ -134,15 +134,22 @@ namespace MKB.Controllers
                          on wka.TipUsluga equals wtu.TipUsluga
                          join np in _db.KbNacinPlakanje
                          on wka.NacinPlakanje equals np.NacinPlakanje
+                         group wka by new
+                         {
+                             wtu.TipUsluga,
+                             wtu.OpisTipUsluga,
+                             np.NacinPlakanje,
+                             np.OpisNacinPlakanje
+                         } into g
+                         orderby g.Key.TipUsluga
                          select new
                          {
-                             KorisnikWebID = wka.KorisnikWebId,
-                             TipUsluga = wtu.TipUsluga,
-                             OpisTipUsluga = wtu.OpisTipUsluga,
-                             NacinPlakanje = np.NacinPlakanje,
-                             OpisNacinPlakanje = np.OpisNacinPlakanje
-                         })
-                      .OrderBy(x => x.OpisTipUsluga);
+                             g.Key.TipUsluga,
+                             g.Key.OpisTipUsluga,
+                             g.Key.NacinPlakanje,
+                             g.Key.OpisNacinPlakanje,
+                             Vkupno = g.Count()
+                         });
 
             return Ok(query);
         }
@@ -279,6 +286,28 @@ namespace MKB.Controllers
 
 
 
+        //- Корисници со непотврдена Email адреса   
+        [HttpGet("KorisniciSoNepotvrdenEmail")]
+        public IActionResult KorisniciSoNepotvrdenEmail()
+        {
+            var query = (from anu in _db.AspNetUsers
+                         where anu.EmailConfirmed == false || anu.EmailConfirmed == null
+                         select new
+                         {
+                             anu.Id,
+                             anu.UserWebId
+                         });
+
+            return Ok(query);
+        }
+
+
+        //Проба: Во сесија кои активности ги презема корисникот.Потоа да се најде поврзаност меѓу резултатите.
+        //Пример: пребарал компанија -> платил за основни информации -> отворил Сопственици, менаџмент и потружници -> 
+        //купил корпоративен извештај.Доколку има повеќе вакви „текови“ да се групираат и пребројат.
+
+
+
 
 
 
@@ -318,14 +347,14 @@ namespace MKB.Controllers
 
         // Корисници со непотврдена Email адреса
 
-        [HttpGet("user-unconfirmed-email")]
-        public IActionResult UnconfirmedEmails()
-        {
-            var query = _db.AspNetUsers
-                .Where(z => z.EmailConfirmed == false)
-                .Count();
-            return Ok(query);
-        }
+        //[HttpGet("user-unconfirmed-email")]
+        //public IActionResult UnconfirmedEmails()
+        //{
+        //    var query = _db.AspNetUsers
+        //        .Where(z => z.EmailConfirmed == false)
+        //        .Count();
+        //    return Ok(query);
+        //}
 
 
         // Компании кои имаат активни пакети по пакети 
