@@ -164,14 +164,22 @@ namespace MKB.Controllers
                          on bw.IzvestajWebId equals iw.IzvestajWebId
                          join sbw in _db.KbStatusBaranjeWeb
                          on bw.StatusBaranjeWeb equals sbw.StatusBaranjeWeb
-                         group iw by new { bw.StatusBaranjeWeb, sbw.OpisStatusBaranjeWeb } into g
+                         join wka in _db.KbWebKorisnikAktivnosti
+                         on bw.BaranjeWebId equals wka.BaranjeWebId
+                         group iw by new
+                         {
+                             bw.StatusBaranjeWeb,
+                             sbw.OpisStatusBaranjeWeb,
+                             wka.StatusPretplata
+                         } into g
+                         orderby g.Key.StatusBaranjeWeb
                          select new
                          {
-                             StatusBaranjeWeb = g.Key.StatusBaranjeWeb,
-                             OpisStatusBaranjeWeb = g.Key.OpisStatusBaranjeWeb,
-                             Broj_Izvestai = g.Count(x => x.IzvestajWebId != null)
-                         })
-                      .OrderBy(x => x.OpisStatusBaranjeWeb);
+                             g.Key.StatusBaranjeWeb,
+                             g.Key.OpisStatusBaranjeWeb,
+                             g.Key.StatusPretplata,
+                             BaranjaIzvestai = g.Count()
+                         });
 
             return Ok(query);
         }
@@ -516,6 +524,8 @@ namespace MKB.Controllers
             return Ok(result);
         }
 
+        //Искористеност на филтри (групирани според главниот филтер (колони Sektor, Sediste ..)
+        //со податоци за подфилтри (вредностите во самите колони))
         [HttpGet("IskoristenostNaFiltri")]
         public IActionResult IskoristenostNaFiltri()
         {

@@ -11,6 +11,7 @@ namespace MKB_Helper
     internal static class Data_Inserter
     {
         private static ApplicationDbContext _db = new ApplicationDbContext();
+
         public static void FixDataForWebLogIskoristeniPromoKodovi()
         {
 
