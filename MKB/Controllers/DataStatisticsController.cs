@@ -516,6 +516,22 @@ namespace MKB.Controllers
             return Ok(result);
         }
 
+        [HttpGet("IskoristenostNaFiltri")]
+        public IActionResult IskoristenostNaFiltri()
+        {
+            var result = _db.KbWebLogFilterKriteriumi
+                .Where(w => w.Sektor != null || w.Sediste != null)
+                .GroupBy(w => new { w.Sektor, w.Sediste })
+                .Select(g => new
+                {
+                    g.Key.Sektor,
+                    g.Key.Sediste,
+                    Koristenost = g.Count()
+                });
+
+            return Ok(result);
+        }
+
     }
 }
 
