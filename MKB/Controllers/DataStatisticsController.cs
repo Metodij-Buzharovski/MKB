@@ -48,9 +48,10 @@ namespace MKB.Controllers
                          on pl.LegalEntityId equals u.LegalEntityId
                          join wka in _db.KbWebKorisnikAktivnosti
                          on u.UserWebId equals wka.KorisnikWebId
-                         group wka by new { pl.Embs, pl.CompanyName } into g
+                         group wka by new { pl.LegalEntityId, pl.Embs, pl.CompanyName } into g
                          select new
                          {
+                             LegalEntityId = g.Key.LegalEntityId,
                              EMBS = g.Key.Embs,
                              CompanyName = g.Key.CompanyName,
                              PotrosheniPoeni = g.Sum(x => x.Poeni),
@@ -99,7 +100,8 @@ namespace MKB.Controllers
                              NazivPodModul = g.Key.NazivPodModul.Trim(),
                              Vkupno_Denari = g.Sum(x => x.wka.Cena + (x.wka.Poeni > 0 ? x.wka.Poeni * (x.wp != null ? x.wp.CenaPoen : 0) : 0)),
                              Vkupno_Poeni = g.Sum(x => x.wka.Poeni)
-                         });
+                         })
+                         .OrderByDescending(x => x.Vkupno_Denari);
 
             return Ok(query);
         }
@@ -355,14 +357,14 @@ namespace MKB.Controllers
 
         // Корисници со непотврдена Email адреса
 
-        //[HttpGet("user-unconfirmed-email")]
-        //public IActionResult UnconfirmedEmails()
-        //{
-        //    var query = _db.AspNetUsers
-        //        .Where(z => z.EmailConfirmed == false)
-        //        .Count();
-        //    return Ok(query);
-        //}
+        [HttpGet("user-unconfirmed-email")]
+        public IActionResult UnconfirmedEmails()
+        {
+            var query = _db.AspNetUsers
+                .Where(z => z.EmailConfirmed == false)
+                .Count();
+            return Ok(query);
+        }
 
 
         // Компании кои имаат активни пакети по пакети 
