@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MKB_API.Models;
+using System;
 using System.Collections.Generic;
 
 namespace MKB.Models;
@@ -46,4 +47,6 @@ public partial class KbWebKorisnikAktivnost
     public virtual AspNetUser KorisnikWeb { get; set; } = null!;
 
     public virtual KbNacinPlakanje? NacinPlakanjeNavigation { get; set; }
+
+    public virtual KbStatusPretplataWeb? StatusPretplataNavigation { get; set; }
 }

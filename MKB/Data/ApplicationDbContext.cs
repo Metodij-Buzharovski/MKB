@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using MKB.Models;
+using MKB_API.Models;
 using WebApplication1.Models;
 
 namespace MKB.Data;
@@ -49,11 +50,15 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<KbWebLogIskoristeniPromoKodovi> KbWebLogIskoristeniPromoKodovi { get; set; }
 
+    public virtual DbSet<KbWebPromoKodovi> KbWebPromoKodovi { get; set; }
+
+    public virtual DbSet<KbStatusPretplataWeb> KbStatusPretplataWebs { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
          => optionsBuilder.UseSqlServer(
-             //"Server=DESKTOP-JTIRNBH\\SQLEXPRESS;Database=MKB;Trusted_Connection=True;TrustServerCertificate=True"
-             "Server=DESKTOP-MCSAB02\\SQLEXPRESS;Database=MKB;Trusted_Connection=True;TrustServerCertificate=True"
+             "Server=DESKTOP-JTIRNBH\\SQLEXPRESS;Database=MKB;Trusted_Connection=True;TrustServerCertificate=True"
+             //"Server=DESKTOP-MCSAB02\\SQLEXPRESS;Database=MKB;Trusted_Connection=True;TrustServerCertificate=True"
              );
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -186,6 +191,16 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.OpisStatusBaranjeWeb).HasMaxLength(64);
         });
 
+        modelBuilder.Entity<KbStatusPretplataWeb>(entity =>
+        {
+            entity.HasKey(e => e.StatusPretplata);
+
+            entity.ToTable("KB_StatusPretplataWeb");
+
+            entity.Property(e => e.OpisStatusPretplata).HasMaxLength(64);
+            entity.Property(e => e.OrderId).HasColumnName("OrderID");
+        });
+
         modelBuilder.Entity<KbWebKorisnikAktivnost>(entity =>
         {
             entity.ToTable("KB_WebKorisnikAktivnost");
@@ -213,6 +228,10 @@ public partial class ApplicationDbContext : DbContext
             entity.HasOne(d => d.NacinPlakanjeNavigation).WithMany(p => p.KbWebKorisnikAktivnosts)
                 .HasForeignKey(d => d.NacinPlakanje)
                 .HasConstraintName("FK_KB_WebKorisnikAktivnost_KB_NacinPlakanje");
+
+            entity.HasOne(d => d.StatusPretplataNavigation).WithMany(p => p.KbWebKorisnikAktivnosts)
+                .HasForeignKey(d => d.StatusPretplata)
+                .HasConstraintName("FK_KB_WebKorisnikAktivnost_KB_StatusPretplataWeb");
         });
 
         modelBuilder.Entity<KbWebKorisnikPaket>(entity =>
@@ -225,9 +244,6 @@ public partial class ApplicationDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("KorisnikWebID");
             entity.Property(e => e.BrDopSubjektiMonitoring).HasDefaultValue((short)0);
-            entity.Property(e => e.DatKrajPaket).HasMaxLength(50);
-            entity.Property(e => e.DatPocPaket).HasMaxLength(50);
-            entity.Property(e => e.DatumVnes).HasMaxLength(50);
             entity.Property(e => e.LegalEntityId).HasColumnName("LegalEntityID");
             entity.Property(e => e.UserName)
                 .HasMaxLength(32)
@@ -446,6 +462,25 @@ public partial class ApplicationDbContext : DbContext
                 .IsFixedLength();
             entity.Property(e => e.UserName)
                 .HasMaxLength(100)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<KbWebPromoKodovi>(entity =>
+        {
+            entity.HasKey(e => e.PromoKod);
+
+            entity.ToTable("KB_WebPromoKodovi");
+
+            entity.Property(e => e.PromoKod).HasMaxLength(20);
+            entity.Property(e => e.Cena).HasColumnType("numeric(9, 2)");
+            entity.Property(e => e.DatumKrajVaznost).HasColumnType("datetime");
+            entity.Property(e => e.DatumPocVaznost).HasColumnType("datetime");
+            entity.Property(e => e.DatumVnes).HasColumnType("datetime");
+            entity.Property(e => e.ImePromocija).HasMaxLength(64);
+            entity.Property(e => e.ProcentPopust).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.PrviNkompanii).HasColumnName("PrviNKompanii");
+            entity.Property(e => e.UserName)
+                .HasMaxLength(32)
                 .IsUnicode(false);
         });
 
