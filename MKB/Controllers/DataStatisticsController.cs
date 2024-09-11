@@ -39,7 +39,7 @@ namespace MKB.Controllers
             return Ok(query);
         }
 
-        //- Трошење на пари и поени по компанија ? sto e ind plateno
+        //- Трошење на пари и поени по компанија
         [HttpGet("PotrosheniSredstvaPoKompanija")]
         public IActionResult PotrosheniSredstvaPoKompanija()
         {
@@ -61,7 +61,7 @@ namespace MKB.Controllers
             return Ok(query);
         }
 
-        //- Компании за кој е баран Х тип на извештај; Х - Сопствен, блокада или корпоративен  ?nema tip izvestaj tabela
+        //- Компании за кој е баран Х тип на извештај; Х - Сопствен, блокада или корпоративен
         [HttpGet("TipIzvestaj/{id}")]
         public IActionResult TipIzvestaj(int id)
         {
@@ -80,7 +80,7 @@ namespace MKB.Controllers
         }
 
         //- Најисплатливи** подмодули ** (најмногу денари се потрошени) - за активности со поени да помножи со цена 
-        //на поен(Цена на пакет / вкупно поени во пакет), но да се вратат и поените.Да се игнорираат бесплатните подмодули. ? sto e ind plateno
+        //на поен(Цена на пакет / вкупно поени во пакет), но да се вратат и поените.Да се игнорираат бесплатните подмодули.
         [HttpGet("NajisplativiPodmoduli")]
         public IActionResult NajisplativiPodmoduli()
         {
@@ -107,7 +107,7 @@ namespace MKB.Controllers
         }
 
 
-        //- Начин на плаќање за сите записи во база (вкупно уплати со поени, ПП30 и картичка) ? ind plateno, nema karticka
+        //- Начин на плаќање за сите записи во база (вкупно уплати со поени, ПП30 и картичка)
         [HttpGet("NacinPlakjanje")]
         public IActionResult NacinPlakjanje()
         {
@@ -127,7 +127,7 @@ namespace MKB.Controllers
         }
 
 
-        //- Начин на плаќање по тип услуга ? ind plateno
+        //- Начин на плаќање по тип услуга
         [HttpGet("NacinPlakjanjePoTipUsluga")]
         public IActionResult NacinPlakjanjePoTipUsluga()
         {
@@ -203,7 +203,7 @@ namespace MKB.Controllers
         }
 
 
-        //- Компании кои искористиле промо код при плаќање ? ind plateno
+        //- Компании кои искористиле промо код при плаќање
         [HttpGet("KompaniiKoiKoristelePromoKod")]
         public IActionResult KompaniiKoiKoristelePromoKod()
         {
