@@ -378,7 +378,7 @@ namespace MKB.Controllers
                         join kwp in _db.KbWebPravniLica on a.LegalEntityId equals kwp.LegalEntityId
                         join kwk in _db.KbWebKorisnikAktivnosti on a.UserWebId equals kwk.KorisnikWebId
                         join kwm in _db.KbWebPaketiM on kwk.PaketId equals kwm.PaketId
-                        where a.LegalEntityId != null
+                        where a.LegalEntityId != null && kwk.StatusPretplata != null && kwk.StatusPretplata == 2
                         group kwm by kwm.NazivPaket into grouped
                         select new
                         {
@@ -481,28 +481,28 @@ namespace MKB.Controllers
         //Искористеност на главни филтри според пакетот на кој се претплатени
         //(Според KorisnikWebID и датум на филтрирање да се најде пакетот)
 
-        [HttpGet("user-filters-usage")]
-        public IActionResult UsedFiltersBasedOnPacket()
-        {
-            var query = _db.KbWebKorisnikAktivnosti
-                .GroupBy(wk => new
-                {
-                    wk.KorisnikWebId,
-                    wk.UserName,
-                    // Extract year, month, and day for the date grouping
-                    wk.DatumVnes.Year,
-                    wk.DatumVnes.Month,
-                    wk.DatumVnes.Day
-                })
-                .Select(g => new
-                {
-                    g.Key.KorisnikWebId,
-                    FilterKoristen = g.Key.UserName,
-                    SumaPoeni = g.Sum(x => x.Poeni),
-                    DatumVnes = new DateTime(g.Key.Year, g.Key.Month, g.Key.Day).ToString("yyyyMMdd")
-                });
-            return Ok(query);
-        }
+        //[HttpGet("user-filters-usage")]
+        //public IActionResult UsedFiltersBasedOnPacket()
+        //{
+        //    var query = _db.KbWebKorisnikAktivnosti
+        //        .GroupBy(wk => new
+        //        {
+        //            wk.KorisnikWebId,
+        //            wk.UserName,
+        //            // Extract year, month, and day for the date grouping
+        //            wk.DatumVnes.Year,
+        //            wk.DatumVnes.Month,
+        //            wk.DatumVnes.Day
+        //        })
+        //        .Select(g => new
+        //        {
+        //            g.Key.KorisnikWebId,
+        //            FilterKoristen = g.Key.UserName,
+        //            SumaPoeni = g.Sum(x => x.Poeni),
+        //            DatumVnes = new DateTime(g.Key.Year, g.Key.Month, g.Key.Day).ToString("yyyyMMdd")
+        //        });
+        //    return Ok(query);
+        //}
 
         //Искористеност на главни филтри според пакетот на кој се претплатени
         //(Според KorisnikWebID и датум на филтрирање да се најде пакетот)
