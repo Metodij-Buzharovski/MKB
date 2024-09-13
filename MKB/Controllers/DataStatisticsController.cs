@@ -374,17 +374,23 @@ namespace MKB.Controllers
         [HttpGet("companies-active-packets")]
         public IActionResult NumberActivePacketsPerCompany()
         {
+            var nazivPaketi = new[] { "Премиум", "Стандард", "Бизнис" };
+
             var query = from a in _db.AspNetUsers
                         join kwp in _db.KbWebPravniLica on a.LegalEntityId equals kwp.LegalEntityId
                         join kwk in _db.KbWebKorisnikAktivnosti on a.UserWebId equals kwk.KorisnikWebId
                         join kwm in _db.KbWebPaketiM on kwk.PaketId equals kwm.PaketId
-                        where a.LegalEntityId != null && kwk.StatusPretplata != null && kwk.StatusPretplata == 2
+                        where a.LegalEntityId != null
+                              && kwk.StatusPretplata != null
+                              && kwk.StatusPretplata == 2
+                              && nazivPaketi.Contains(kwm.NazivPaket.Trim())
                         group kwm by kwm.NazivPaket into grouped
                         select new
                         {
                             NazivPaket = grouped.Key.Trim(),
                             Firmi = grouped.Count()
                         };
+
             return Ok(query);
         }
 
