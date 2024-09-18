@@ -52,7 +52,9 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<KbWebPromoKodovi> KbWebPromoKodovi { get; set; }
 
-    public virtual DbSet<KbStatusPretplataWeb> KbStatusPretplataWebs { get; set; }
+    public virtual DbSet<KbStatusPretplataWeb> KbStatusPretplataWeb { get; set; }
+
+    public virtual DbSet<KbVidKorIzv> KbVidKorIzvestai { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -199,6 +201,17 @@ public partial class ApplicationDbContext : DbContext
 
             entity.Property(e => e.OpisStatusPretplata).HasMaxLength(64);
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
+        });
+
+        modelBuilder.Entity<KbVidKorIzv>(entity =>
+        {
+            entity.HasKey(e => e.VidKorIzv);
+
+            entity.ToTable("KB_VidKorIzv");
+
+            entity.Property(e => e.IndAcdizv).HasColumnName("IndACDIzv");
+            entity.Property(e => e.IndPrikazMkbadmin).HasColumnName("IndPrikazMKBAdmin");
+            entity.Property(e => e.OpisVidKorIzv).HasMaxLength(50);
         });
 
         modelBuilder.Entity<KbWebKorisnikAktivnost>(entity =>
@@ -511,3 +524,4 @@ public partial class ApplicationDbContext : DbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+

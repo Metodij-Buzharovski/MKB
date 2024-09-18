@@ -68,14 +68,18 @@ namespace MKB.Controllers
             var query = (from iw in _db.KbIzvestaiWeb
                          join pl in _db.KbWebPravniLica
                          on iw.LegalEntityId equals pl.LegalEntityId
-                         where iw.TipIzvestaj == id
+                         join vki in _db.KbVidKorIzvestai
+                         on iw.VidKorIzv equals vki.VidKorIzv
+                         where new[] { 0, 13, 14 }.Contains(vki.VidKorIzv) && vki.VidKorIzv == id
+                         group iw by new { pl.LegalEntityId, pl.CompanyName, vki.VidKorIzv, vki.OpisVidKorIzv } into g
                          select new
                          {
-                             pl.LegalEntityId,
-                             pl.Embs,
-                             pl.CompanyName,
-                             iw.TipIzvestaj
-                         }).Distinct();
+                             g.Key.LegalEntityId,
+                             g.Key.CompanyName,
+                             g.Key.VidKorIzv,
+                             g.Key.OpisVidKorIzv,
+                             VkupnoPobaraniIzv = g.Count()
+                         }).OrderBy(x => x.LegalEntityId);
             return Ok(query);
         }
 
@@ -136,14 +140,7 @@ namespace MKB.Controllers
                          on wka.TipUsluga equals wtu.TipUsluga
                          join np in _db.KbNacinPlakanje
                          on wka.NacinPlakanje equals np.NacinPlakanje
-                         group wka by new
-                         {
-                             wtu.TipUsluga,
-                             wtu.OpisTipUsluga,
-                             np.NacinPlakanje,
-                             np.OpisNacinPlakanje
-                         } into g
-                         orderby g.Key.TipUsluga
+                         group wka by new { wtu.TipUsluga, wtu.OpisTipUsluga, np.NacinPlakanje, np.OpisNacinPlakanje } into g
                          select new
                          {
                              g.Key.TipUsluga,
@@ -151,13 +148,13 @@ namespace MKB.Controllers
                              g.Key.NacinPlakanje,
                              g.Key.OpisNacinPlakanje,
                              Vkupno = g.Count()
-                         });
+                         }).OrderBy(x => x.TipUsluga);
 
             return Ok(query);
         }
 
 
-        //- - Генерирани барања за извештаи по статус на барањето 
+        //- - Генерирани барања за извештаи по статус на барањето  --Има само за статус барање 3 и 5
         [HttpGet("GeneriraniBaranjaZaIzvestaiPoStatusBaranje")]
         public IActionResult GeneriraniBaranjaZaIzvestaiPoStatusBaranje()
         {
@@ -168,12 +165,7 @@ namespace MKB.Controllers
                          on bw.StatusBaranjeWeb equals sbw.StatusBaranjeWeb
                          join wka in _db.KbWebKorisnikAktivnosti
                          on bw.BaranjeWebId equals wka.BaranjeWebId
-                         group iw by new
-                         {
-                             bw.StatusBaranjeWeb,
-                             sbw.OpisStatusBaranjeWeb,
-                             wka.StatusPretplata
-                         } into g
+                         group iw by new { bw.StatusBaranjeWeb, sbw.OpisStatusBaranjeWeb, wka.StatusPretplata } into g
                          orderby g.Key.StatusBaranjeWeb
                          select new
                          {
@@ -181,7 +173,7 @@ namespace MKB.Controllers
                              g.Key.OpisStatusBaranjeWeb,
                              g.Key.StatusPretplata,
                              BaranjaIzvestai = g.Count()
-                         });
+                         }).OrderBy(x => x.StatusBaranjeWeb);
 
             return Ok(query);
         }
@@ -191,13 +183,15 @@ namespace MKB.Controllers
         public IActionResult AktivnostiPoStatusPretplata()
         {
             var query = (from wka in _db.KbWebKorisnikAktivnosti
-                         group wka by wka.StatusPretplata into g
+                         join spw in _db.KbStatusPretplataWeb
+                         on wka.StatusPretplata equals spw.StatusPretplata
+                         group wka by new { spw.StatusPretplata, spw.OpisStatusPretplata } into g
                          select new
                          {
-                             StatusPretplata = g.Key,
+                             g.Key.StatusPretplata,
+                             g.Key.OpisStatusPretplata,
                              Br_Aktivnosti = g.Count()
-                         })
-                      .OrderBy(x => x.StatusPretplata);
+                         }).OrderBy(x => x.StatusPretplata);
 
             return Ok(query);
         }
@@ -208,17 +202,17 @@ namespace MKB.Controllers
         public IActionResult KompaniiKoiKoristelePromoKod()
         {
             var query = (from ipk in _db.KbWebLogIskoristeniPromoKodovi
-                         join wka in _db.KbWebKorisnikAktivnosti
-                         on ipk.AktivnostId equals wka.Id
+                         join anu in _db.AspNetUsers
+                         on ipk.KorisnikWebId equals anu.UserWebId
                          join pl in _db.KbWebPravniLica
-                         on ipk.LegalEntityId equals pl.LegalEntityId
-                         where wka.IndPlateno == true
+                         on anu.LegalEntityId equals pl.LegalEntityId
+                         group ipk by new { pl.LegalEntityId, pl.CompanyName } into g
                          select new
                          {
-                             pl.LegalEntityId,
-                             pl.CompanyName,
-                             ipk.PromoKod
-                         });
+                             g.Key.LegalEntityId,
+                             g.Key.CompanyName,
+                             VkupnoKoristeniPromoKodovi = g.Count()
+                         }).OrderBy(x => x.VkupnoKoristeniPromoKodovi);
 
             return Ok(query);
         }
@@ -254,28 +248,7 @@ namespace MKB.Controllers
         [HttpGet("KompaniiKoiDoplatileZaPoeni")]
         public IActionResult KompaniiKoiDoplatileZaPoeni()
         {
-            var query =
-                         //(from wka in _db.KbWebKorisnikAktivnosti
-                         // join anu in _db.AspNetUsers
-                         // on wka.KorisnikWebId equals anu.UserWebId
-                         // join pl in _db.KbWebPravniLica
-                         // on anu.LegalEntityId equals pl.LegalEntityId
-                         // join wp in _db.KbWebPaketiM
-                         // on wka.PaketId equals wp.PaketId
-                         // join wkp in _db.KbWebKorisnikPaketi
-                         // on new { wka.PaketId, wka.KorisnikWebId } equals new { wkp.PaketId, wkp.KorisnikWebId }
-                         // where wkp.DopolnitelniPoeni != null && wkp.DopolnitelniPoeni > 0
-                         // select new
-                         // {
-                         //     WebAktivnostId = wka.Id,
-                         //     wkp.KorisnikWebId,
-                         //     pl.LegalEntityId,
-                         //     pl.CompanyName,
-                         //     wp.PaketId,
-                         //     wp.NazivPaket,
-                         //     wkp.DopolnitelniPoeni
-                         // });
-                         (from wkp in _db.KbWebKorisnikPaketi
+            var query = (from wkp in _db.KbWebKorisnikPaketi
                          join pl in _db.KbWebPravniLica
                          on wkp.LegalEntityId equals pl.LegalEntityId
                          join wp in _db.KbWebPaketiM
