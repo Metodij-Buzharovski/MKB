@@ -301,24 +301,22 @@ namespace MKB.Controllers
         // Трошење на поени по компанија по модул.
         // Endpoint кој ќе прима ЕМБС на компанија и ќе враќа колку поени потрошиле по модул
 
-        [HttpGet("company-points-spent-module")]
-        public IActionResult PointsPerCompanyForModule([FromQuery(Name = "id")] string embs)
+        [HttpGet("TroseniPoeniPoKompanijaPoModul")]
+        public IActionResult TroseniPoeniPoKompanijaPoModul([FromQuery(Name = "embs")] string embs)
         {
-            var query = from a in _db.AspNetUsers
-                        join kbw in _db.KbWebPravniLica on a.LegalEntityId equals kbw.LegalEntityId
-                        join kwk in _db.KbWebKorisnikAktivnosti on a.UserWebId equals kwk.KorisnikWebId
-                        join kwm in _db.KbWebModuli on new { ModulId = kwk.ModulId.GetValueOrDefault(), PodmoduliId = kwk.PodModulId.GetValueOrDefault() } equals new { kwm.ModulId, PodmoduliId = kwm.PodModulId }
-                        where a.LegalEntity != null
-                              && kbw.Embs == embs
-                              && kwk.Poeni != 0
-                              && kwk.Cena == 0
-                        group kwk by kwm.NazivPodModul into grouped
-                        orderby grouped.Count() ascending
-                        select new
-                        {
-                            NazivPodModul = grouped.Key,
-                            PoeniTroseni = grouped.Count()
-                        };
+            var query =
+                    from a in _db.AspNetUsers
+                    join kwl in _db.KbWebPravniLica on a.LegalEntityId equals kwl.LegalEntityId
+                    join kwk in _db.KbWebKorisnikAktivnosti on a.UserWebId equals kwk.KorisnikWebId
+                    join kwm in _db.KbWebModuli on new { ModulId = kwk.ModulId.GetValueOrDefault(), PodmoduliId = kwk.PodModulId.GetValueOrDefault() } equals new { kwm.ModulId, PodmoduliId = kwm.PodModulId }
+                    where kwl.Embs == embs && new[] { 1, 2 }.Contains(kwk.TipUsluga) && kwk.Poeni > 0 && kwk.Cena == 0
+                    group kwk by kwm.NazivPodModul into g
+                    select new
+                    {
+                        NazivPodModul = g.Key,
+                        TotalPointsSpent = g.Sum(kwk => kwk.Poeni)
+                    };
+
             var result = query.ToList();
             if (result.IsNullOrEmpty())
             {
@@ -328,24 +326,12 @@ namespace MKB.Controllers
         }
 
 
-        // Корисници со непотврдена Email адреса
-
-        [HttpGet("user-unconfirmed-email")]
-        public IActionResult UnconfirmedEmails()
-        {
-            var query = _db.AspNetUsers
-                .Where(z => z.EmailConfirmed == false)
-                .Count();
-            return Ok(query);
-        }
-
-
         // Компании кои имаат активни пакети по пакети 
         // (број на компании претплатени на Стандард, Бизнис, Премиум и Персонализиран)
         // (сите персонализирани заедно во еден податок)
 
-        [HttpGet("companies-active-packets")]
-        public IActionResult NumberActivePacketsPerCompany()
+        [HttpGet("AktivniPaketiPoKompanija")]
+        public IActionResult AktivniPaketiPoKompanija()
         {
             var nazivPaketi = new[] { "Премиум", "Стандард", "Бизнис" };
 
@@ -368,37 +354,37 @@ namespace MKB.Controllers
         }
 
         // Купени извештаи по начин плаќање
-        [HttpGet("payment-type-reports")]
-        public IActionResult NacinPlakanjeNaTipUsluga()
-        {
-            var query = from a in _db.AspNetUsers
-                        join kwk in _db.KbWebKorisnikAktivnosti on a.UserWebId equals kwk.KorisnikWebId
-                        join kwm in _db.KbWebModuli on new { ModulId = kwk.ModulId.GetValueOrDefault(), PodmoduliId = kwk.PodModulId.GetValueOrDefault() } equals new { kwm.ModulId, PodmoduliId = kwm.PodModulId }
-                        join kwt in _db.KbWebTipUslugi on kwm.TipUsluga equals kwt.TipUsluga
-                        join kwn in _db.KbNacinPlakanje on kwk.NacinPlakanje equals kwn.NacinPlakanje
-                        group new { kwt.TipUsluga, kwn.OpisNacinPlakanje } by new { kwt.TipUsluga, kwn.NacinPlakanje } into g
-                        select new
-                        {
-                            g.Key.TipUsluga,
-                            g.Key.NacinPlakanje,
-                            BrojNaPlakanja = g.Count()
-                        } into tmp
-                        join kwt in _db.KbWebTipUslugi on tmp.TipUsluga equals kwt.TipUsluga
-                        join kwn in _db.KbNacinPlakanje on tmp.NacinPlakanje equals kwn.NacinPlakanje
-                        select new
-                        {
-                            kwn.OpisNacinPlakanje,
-                            tmp.BrojNaPlakanja,
-                            kwt.OpisTipUsluga
-                        };
-            return Ok(query);
-        }
+        //[HttpGet("NacinPlakanjeNaTipUsluga")]
+        //public IActionResult NacinPlakanjeNaTipUsluga()
+        //{
+        //    var query = from a in _db.AspNetUsers
+        //                join kwk in _db.KbWebKorisnikAktivnosti on a.UserWebId equals kwk.KorisnikWebId
+        //                join kwm in _db.KbWebModuli on new { ModulId = kwk.ModulId.GetValueOrDefault(), PodmoduliId = kwk.PodModulId.GetValueOrDefault() } equals new { kwm.ModulId, PodmoduliId = kwm.PodModulId }
+        //                join kwt in _db.KbWebTipUslugi on kwm.TipUsluga equals kwt.TipUsluga
+        //                join kwn in _db.KbNacinPlakanje on kwk.NacinPlakanje equals kwn.NacinPlakanje
+        //                group new { kwt.TipUsluga, kwn.OpisNacinPlakanje } by new { kwt.TipUsluga, kwn.NacinPlakanje } into g
+        //                select new
+        //                {
+        //                    g.Key.TipUsluga,
+        //                    g.Key.NacinPlakanje,
+        //                    BrojNaPlakanja = g.Count()
+        //                } into tmp
+        //                join kwt in _db.KbWebTipUslugi on tmp.TipUsluga equals kwt.TipUsluga
+        //                join kwn in _db.KbNacinPlakanje on tmp.NacinPlakanje equals kwn.NacinPlakanje
+        //                select new
+        //                {
+        //                    kwn.OpisNacinPlakanje,
+        //                    tmp.BrojNaPlakanja,
+        //                    kwt.OpisTipUsluga
+        //                };
+        //    return Ok(query);
+        //}
 
         // Корисници кои го деактивирале/избришале профилот во истиот месец кога и го направиле
         // (DateIns и DateUpd се во ист месец и UserStatus e 0)
 
-        [HttpGet("user-profile-deactivated-same-month")]
-        public IActionResult UserDeactivatedInTheSameMonth()
+        [HttpGet("KorisniciKreiraniBriseniIstiMesec")]
+        public IActionResult KorisniciKreiraniBriseniIstiMesec()
         {
             var query = _db.AspNetUsers
                 .Where(z => z.DateIns.Substring(5, 2).Equals(z.DateUpd.Substring(5, 2)) && z.UserStatus == null)
@@ -436,8 +422,8 @@ namespace MKB.Controllers
         }
 
         // Активност на порталот по месец(да се враќаат цела активност заедно со описи на IDs)
-        [HttpGet("activity-per-month")]
-        public IActionResult ActivityPerMonthPerUser()
+        [HttpGet("PortalAktivnostPoMesec")]
+        public IActionResult PortalAktivnostPoMesec()
         {
             var result = from activity in _db.KbWebKorisnikAktivnosti
                          let year = activity.DatumVnes.Year
