@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MKB.Data;
+using MKB.Models;
 
 namespace MKB.Controllers
 {
@@ -44,19 +45,20 @@ namespace MKB.Controllers
         public IActionResult PotrosheniSredstvaPoKompanija()
         {
             var query = (from pl in _db.KbWebPravniLica
-                         join u in _db.AspNetUsers
-                         on pl.LegalEntityId equals u.LegalEntityId
-                         join wka in _db.KbWebKorisnikAktivnosti
-                         on u.UserWebId equals wka.KorisnikWebId
+                         join u in _db.AspNetUsers on pl.LegalEntityId equals u.LegalEntityId
+                         join wka in _db.KbWebKorisnikAktivnosti on u.UserWebId equals wka.KorisnikWebId
                          group wka by new { pl.LegalEntityId, pl.Embs, pl.CompanyName } into g
                          select new
                          {
                              LegalEntityId = g.Key.LegalEntityId,
                              EMBS = g.Key.Embs,
                              CompanyName = g.Key.CompanyName,
-                             PotrosheniPoeni = g.Sum(x => x.Poeni),
-                             PotroshenPari = g.Sum(x => x.Cena)
-                         });
+                             PotrosheniPoeni = g.Sum(x => (x.TipUsluga == 1 || x.TipUsluga == 2 || x.TipUsluga == 6) ? x.Poeni : 0),
+                             PotroshenIznos = g.Sum(x => x.IndPlateno == true ? x.Cena : 0)
+                         })
+                      .OrderByDescending(x => x.PotroshenIznos)
+                      .ThenByDescending(x => x.PotrosheniPoeni)
+                      .ToList();
 
             return Ok(query);
         }
@@ -112,23 +114,24 @@ namespace MKB.Controllers
 
 
         //- Начин на плаќање за сите записи во база (вкупно уплати со поени, ПП30 и картичка)
-        [HttpGet("NacinPlakjanje")]
-        public IActionResult NacinPlakjanje()
-        {
-            var query = (from wka in _db.KbWebKorisnikAktivnosti
-                         join np in _db.KbNacinPlakanje
-                         on wka.NacinPlakanje equals np.NacinPlakanje
-                         where np.OpisNacinPlakanje == "поени" || np.OpisNacinPlakanje == "ПП30" || np.OpisNacinPlakanje == "CPay"
-                         group np by new { wka.NacinPlakanje, np.OpisNacinPlakanje } into g
-                         select new
-                         {
-                             NacinPlakanje = g.Key.NacinPlakanje,
-                             OpisNacinPlakanje = g.Key.OpisNacinPlakanje,
-                             Vkupno_Uplati = g.Count()
-                         });
+        //[HttpGet("NacinPlakjanje")]
+        //public IActionResult NacinPlakjanje()
+        //{
+        //    var firstQuery = from wka in _db.KbWebKorisnikAktivnosti
+        //                     j
+        //                     where (wka.Poeni > 0 &&
+        //                           (wka.TipUsluga == 1 || wka.TipUsluga == 2 || wka.TipUsluga == 6)) &&
+        //                           (wka.KB_NacinPlakanje.OpisNacinPlakanje == "поени" || wka.KB_NacinPlakanje.OpisNacinPlakanje == null)
+        //                     select new
+        //                     {
+        //                         NacinPlakanje = 6,
+        //                         OpisNacinPlakanje = "поени",
+        //                         Vkupno_Uplati = _db.KbWebKorisnikAktivnosti.Count(x => (x.Poeni > 0 &&
+        //                                   (x.TipUsluga == 1 || x.TipUsluga == 2 || x.TipUsluga == 6)))
+        //                     };
 
-            return Ok(query);
-        }
+        //    return Ok(query);
+        //}
 
 
         //- Начин на плаќање по тип услуга
@@ -165,13 +168,16 @@ namespace MKB.Controllers
                          on bw.StatusBaranjeWeb equals sbw.StatusBaranjeWeb
                          join wka in _db.KbWebKorisnikAktivnosti
                          on bw.BaranjeWebId equals wka.BaranjeWebId
-                         group iw by new { bw.StatusBaranjeWeb, sbw.OpisStatusBaranjeWeb, wka.StatusPretplata } into g
+                         join spw in _db.KbStatusPretplataWeb
+                         on wka.StatusPretplata equals spw.StatusPretplata
+                         group iw by new { bw.StatusBaranjeWeb, sbw.OpisStatusBaranjeWeb, spw.StatusPretplata, spw.OpisStatusPretplata } into g
                          orderby g.Key.StatusBaranjeWeb
                          select new
                          {
                              g.Key.StatusBaranjeWeb,
                              g.Key.OpisStatusBaranjeWeb,
                              g.Key.StatusPretplata,
+                             g.Key.OpisStatusPretplata,
                              BaranjaIzvestai = g.Count()
                          }).OrderBy(x => x.StatusBaranjeWeb);
 
@@ -197,7 +203,7 @@ namespace MKB.Controllers
         }
 
 
-        //- Компании кои искористиле промо код при плаќање
+        //- Компании кои искористиле промо код при плаќање  !!!!OK
         [HttpGet("KompaniiKoiKoristelePromoKod")]
         public IActionResult KompaniiKoiKoristelePromoKod()
         {
@@ -206,13 +212,19 @@ namespace MKB.Controllers
                          on ipk.KorisnikWebId equals anu.UserWebId
                          join pl in _db.KbWebPravniLica
                          on anu.LegalEntityId equals pl.LegalEntityId
-                         group ipk by new { pl.LegalEntityId, pl.CompanyName } into g
+                         join wka in _db.KbWebKorisnikAktivnosti
+                         on ipk.AktivnostId equals wka.Id
+                         join wtu in _db.KbWebTipUslugi
+                         on wka.TipUsluga equals wtu.TipUsluga
+                         group ipk by new { pl.LegalEntityId, pl.CompanyName, wtu.TipUsluga, wtu.OpisTipUsluga } into g
                          select new
                          {
                              g.Key.LegalEntityId,
                              g.Key.CompanyName,
-                             VkupnoKoristeniPromoKodovi = g.Count()
-                         }).OrderBy(x => x.VkupnoKoristeniPromoKodovi);
+                             g.Key.TipUsluga,
+                             g.Key.OpisTipUsluga,
+                             IskoristeniPromoKodovi = g.Count()
+                         }).OrderBy(x => x.LegalEntityId).ThenByDescending(x => x.IskoristeniPromoKodovi);
 
             return Ok(query);
         }
@@ -224,19 +236,20 @@ namespace MKB.Controllers
         public IActionResult KompaniiPretplateniNaPaket()
         {
             var query = (from wkp in _db.KbWebKorisnikPaketi
-                         join wp in _db.KbWebPaketiM
-                         on wkp.PaketId equals wp.PaketId
-                         join pl in _db.KbWebPravniLica
-                         on wkp.LegalEntityId equals pl.LegalEntityId
-                         where wkp.DatPocPaket != null
+                         join wp in _db.KbWebPaketiM on wkp.PaketId equals wp.PaketId
+                         join anu in _db.AspNetUsers on wkp.KorisnikWebId equals anu.UserWebId
+                         join pl in _db.KbWebPravniLica on anu.LegalEntityId equals pl.LegalEntityId
                          select new
                          {
-                             pl.LegalEntityId,
-                             pl.CompanyName,
-                             wp.PaketId,
-                             wp.NazivPaket
+                             LegalEntityID = pl.LegalEntityId,
+                             CompanyName = pl.CompanyName,
+                             IsPretplatenNaPaket = (wkp.PaketId != null && wkp.DatKrajPaket > DateTime.Now) ? "YES" : "NO",
+                             PaketId = wp.PaketId,
+                             NazivPaket = wp.NazivPaket.Trim(),
+                             DatPocPaket = wkp.DatPocPaket,
+                             DatKrajPaket = wkp.DatKrajPaket
                          })
-                      .Distinct();
+                         .OrderByDescending(x => x.DatKrajPaket);
 
             return Ok(query);
         }
@@ -244,32 +257,34 @@ namespace MKB.Controllers
 
 
         //- компании кои имаат доплатено за дополнителни поени при претплата на пакет
-        //(hint: во истата активност за пакет ќе е пополнета колоната за дополнителни поени во база) ? dali i koga dop poeni e 0
+        //(hint: во истата активност за пакет ќе е пополнета колоната за дополнителни поени во база)   !!!!OK
         [HttpGet("KompaniiKoiDoplatileZaPoeni")]
         public IActionResult KompaniiKoiDoplatileZaPoeni()
         {
-            var query = (from wkp in _db.KbWebKorisnikPaketi
-                         join pl in _db.KbWebPravniLica
-                         on wkp.LegalEntityId equals pl.LegalEntityId
-                         join wp in _db.KbWebPaketiM
-                         on wkp.PaketId equals wp.PaketId
-                         where wkp.DopolnitelniPoeni != null && wkp.DopolnitelniPoeni > 0
+            var query = (from wka in _db.KbWebKorisnikAktivnosti
+                         join anu in _db.AspNetUsers on wka.KorisnikWebId equals anu.UserWebId
+                         join pl in _db.KbWebPravniLica on anu.LegalEntityId equals pl.LegalEntityId
+                         join wp in _db.KbWebPaketiM on wka.PaketId equals wp.PaketId
+                         where wka.TipUsluga == 3 && wka.Poeni > 0
+                         group wka by new { anu.UserWebId, pl.LegalEntityId, pl.CompanyName, wp.PaketId, wp.NazivPaket } into g
                          select new
                          {
-                             wkp.KorisnikWebId,
-                             pl.LegalEntityId,
-                             pl.CompanyName,
-                             wp.PaketId,
-                             wp.NazivPaket,
-                             wkp.DopolnitelniPoeni
-                         });
+                             UserWebID = g.Key.UserWebId,
+                             LegalEntityId = g.Key.LegalEntityId,
+                             CompanyName = g.Key.CompanyName,
+                             PaketId = g.Key.PaketId,
+                             NazivPaket = g.Key.NazivPaket.Trim(),
+                             DopolnitelniPoeni = g.Sum(x => x.Poeni)
+                         })
+                      .OrderByDescending(x => x.DopolnitelniPoeni)
+                      .ToList();
 
             return Ok(query);
         }
 
 
 
-        //- Корисници со непотврдена Email адреса   
+        //- Корисници со непотврдена Email адреса   !!!!OK
         [HttpGet("KorisniciSoNepotvrdenEmail")]
         public IActionResult KorisniciSoNepotvrdenEmail()
         {
