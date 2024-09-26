@@ -5,7 +5,7 @@ using MKB.Models;
 using MKB_Helper;
 
 
-//Data_Inserter.FixDataForAspNetUset();
+//Data_Inserter.FixDataForAspNetUser();
 //Data_Inserter.FixDataForWebLogIskoristeniPromoKodovi();
 //Data_Inserter.FixDataForWebKorisnikPaket();
 

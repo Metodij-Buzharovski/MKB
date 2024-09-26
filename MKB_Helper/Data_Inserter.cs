@@ -61,7 +61,7 @@ namespace MKB_Helper
         }
 
 
-        public static void FixDataForAspNetUset()
+        public static void FixDataForAspNetUser()
         {
             List<AspNetUser> rowsToUpdate = _db.AspNetUsers.Where(u => u.LegalEntityId != null).ToList();
 

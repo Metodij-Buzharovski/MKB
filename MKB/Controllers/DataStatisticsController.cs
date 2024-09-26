@@ -18,7 +18,8 @@ namespace MKB.Controllers
             _db = db;
         }
 
-        //Најкористени** подмодули ** - најмногу записи имаат во база во WebKorisnikAktivnost
+        //Најкористени** подмодули ** - најмногу записи имаат во база во WebKorisnikAktivnost  !!!!!OK
+        //Tabelata KorisnikAktivnost da se dodade modulId i podmodulId koga tip usluga e 7
         [HttpGet("NajkoristeniPodmoduli")]
         public IActionResult NajkoristeniPodmoduli()
         {
@@ -40,7 +41,7 @@ namespace MKB.Controllers
             return Ok(query);
         }
 
-        //- Трошење на пари и поени по компанија
+        //- Трошење на пари и поени по компанија !!!!!!OK
         [HttpGet("PotrosheniSredstvaPoKompanija")]
         public IActionResult PotrosheniSredstvaPoKompanija()
         {
@@ -54,16 +55,16 @@ namespace MKB.Controllers
                              EMBS = g.Key.Embs,
                              CompanyName = g.Key.CompanyName,
                              PotrosheniPoeni = g.Sum(x => (x.TipUsluga == 1 || x.TipUsluga == 2 || x.TipUsluga == 6) ? x.Poeni : 0),
-                             PotroshenIznos = g.Sum(x => x.IndPlateno == true ? x.Cena : 0)
+                             PotroshenoDenari = g.Sum(x => x.IndPlateno == true ? x.Cena : 0)
                          })
-                      .OrderByDescending(x => x.PotroshenIznos)
+                      .OrderByDescending(x => x.PotroshenoDenari)
                       .ThenByDescending(x => x.PotrosheniPoeni)
                       .ToList();
 
             return Ok(query);
         }
 
-        //- Компании за кој е баран Х тип на извештај; Х - Сопствен, блокада или корпоративен
+        //- Компании за кој е баран Х тип на извештај; Х - Сопствен, блокада или корпоративен   !!!!OK
         [HttpGet("TipIzvestaj/{id}")]
         public IActionResult TipIzvestaj(int id)
         {
@@ -113,37 +114,49 @@ namespace MKB.Controllers
         }
 
 
-        //- Начин на плаќање за сите записи во база (вкупно уплати со поени, ПП30 и картичка)
-        //[HttpGet("NacinPlakjanje")]
-        //public IActionResult NacinPlakjanje()
-        //{
-        //    var firstQuery = from wka in _db.KbWebKorisnikAktivnosti
-        //                     j
-        //                     where (wka.Poeni > 0 &&
-        //                           (wka.TipUsluga == 1 || wka.TipUsluga == 2 || wka.TipUsluga == 6)) &&
-        //                           (wka.KB_NacinPlakanje.OpisNacinPlakanje == "поени" || wka.KB_NacinPlakanje.OpisNacinPlakanje == null)
-        //                     select new
-        //                     {
-        //                         NacinPlakanje = 6,
-        //                         OpisNacinPlakanje = "поени",
-        //                         Vkupno_Uplati = _db.KbWebKorisnikAktivnosti.Count(x => (x.Poeni > 0 &&
-        //                                   (x.TipUsluga == 1 || x.TipUsluga == 2 || x.TipUsluga == 6)))
-        //                     };
+        //- Начин на плаќање за сите записи во база (вкупно уплати со поени, ПП30 и картичка) !!!!!!!OK
+        //Koga Tip Usluga e 1 ili 2, i se plakja so poeni, da se dodade NacinPLakjanje da bide 6 i IndPlateno da e 1
+        [HttpGet("NacinPlakjanje")]
+        public IActionResult NacinPlakjanje()
+        {
+            var query = (from wka in _db.KbWebKorisnikAktivnosti
+                              join np in _db.KbNacinPlakanje
+                              on wka.NacinPlakanje equals np.NacinPlakanje into npGroup
+                              from tmp in npGroup.DefaultIfEmpty() // Left join equivalent
+                              where (tmp.OpisNacinPlakanje == "поени" || tmp.OpisNacinPlakanje == "ПП30" || 
+                              tmp.OpisNacinPlakanje == "CPay" || tmp.OpisNacinPlakanje == null)
+                                    && ((new[] { 1, 2 }.Contains(wka.TipUsluga) && wka.Poeni > 0) || wka.IndPlateno == true)
+                              group wka by new
+                              {
+                                  NacinPlakanje = (wka.NacinPlakanje == null) ? 6 : wka.NacinPlakanje,
+                                  OpisNacinPlakanje = (tmp == null) ? "поени" : tmp.OpisNacinPlakanje
+                              } into g
+                              select new
+                              {
+                                  g.Key.NacinPlakanje,
+                                  g.Key.OpisNacinPlakanje,
+                                  Vkupno_Uplati = g.Count()
+                              }).OrderBy(x => x.NacinPlakanje);
+            return Ok(query);
+        }
 
-        //    return Ok(query);
-        //}
 
-
-        //- Начин на плаќање по тип услуга
+        //- Начин на плаќање по тип услуга !!!!!!!OK
         [HttpGet("NacinPlakjanjePoTipUsluga")]
         public IActionResult NacinPlakjanjePoTipUsluga()
         {
             var query = (from wka in _db.KbWebKorisnikAktivnosti
-                         join wtu in _db.KbWebTipUslugi
-                         on wka.TipUsluga equals wtu.TipUsluga
-                         join np in _db.KbNacinPlakanje
-                         on wka.NacinPlakanje equals np.NacinPlakanje
-                         group wka by new { wtu.TipUsluga, wtu.OpisTipUsluga, np.NacinPlakanje, np.OpisNacinPlakanje } into g
+                         join wtu in _db.KbWebTipUslugi on wka.TipUsluga equals wtu.TipUsluga
+                         join np in _db.KbNacinPlakanje on wka.NacinPlakanje equals np.NacinPlakanje into npGroup
+                         from tmp in npGroup.DefaultIfEmpty()
+                         where (new[] { 1, 2 }.Contains(wka.TipUsluga) && wka.Poeni > 0) || wka.IndPlateno == true
+                         group wka by new
+                         {
+                             wtu.TipUsluga,
+                             wtu.OpisTipUsluga,
+                             NacinPlakanje = (tmp == null) ? 6 : tmp.NacinPlakanje,
+                             OpisNacinPlakanje = (tmp == null) ? "поени" : tmp.OpisNacinPlakanje
+                         } into g
                          select new
                          {
                              g.Key.TipUsluga,
@@ -151,13 +164,15 @@ namespace MKB.Controllers
                              g.Key.NacinPlakanje,
                              g.Key.OpisNacinPlakanje,
                              Vkupno = g.Count()
-                         }).OrderBy(x => x.TipUsluga);
+                         })
+                      .OrderBy(x => x.TipUsluga)
+                      .ThenBy(x => x.NacinPlakanje);
 
             return Ok(query);
         }
 
 
-        //- - Генерирани барања за извештаи по статус на барањето  --Има само за статус барање 3 и 5
+        //- - Генерирани барања за извештаи по статус на барањето  --Има само за статус барање 3 и 5  !!!!OK
         [HttpGet("GeneriraniBaranjaZaIzvestaiPoStatusBaranje")]
         public IActionResult GeneriraniBaranjaZaIzvestaiPoStatusBaranje()
         {
@@ -184,7 +199,7 @@ namespace MKB.Controllers
             return Ok(query);
         }
 
-        //Активности по статус претплата
+        //Активности по статус претплата   !!!!OK
         [HttpGet("AktivnostiPoStatusPretplata")]
         public IActionResult AktivnostiPoStatusPretplata()
         {
@@ -231,12 +246,14 @@ namespace MKB.Controllers
 
 
 
-        //- Компании кои не се претплатиле на пакет откако им истекол стариот. Да враќа и за тие што повторно СЕ претплатиле.     
+        //- Компании кои не се претплатиле на пакет откако им истекол стариот. Да враќа и за тие што повторно СЕ претплатиле.  !!!!OK   
         [HttpGet("KompaniiPretplateniNaPaket")]
         public IActionResult KompaniiPretplateniNaPaket()
         {
             var query = (from wkp in _db.KbWebKorisnikPaketi
-                         join wp in _db.KbWebPaketiM on wkp.PaketId equals wp.PaketId
+                         join wp in _db.KbWebPaketiM 
+                         on wkp.PaketId equals wp.PaketId into wpGroup
+                         from tmp in wpGroup.DefaultIfEmpty()
                          join anu in _db.AspNetUsers on wkp.KorisnikWebId equals anu.UserWebId
                          join pl in _db.KbWebPravniLica on anu.LegalEntityId equals pl.LegalEntityId
                          select new
@@ -244,8 +261,8 @@ namespace MKB.Controllers
                              LegalEntityID = pl.LegalEntityId,
                              CompanyName = pl.CompanyName,
                              IsPretplatenNaPaket = (wkp.PaketId != null && wkp.DatKrajPaket > DateTime.Now) ? "YES" : "NO",
-                             PaketId = wp.PaketId,
-                             NazivPaket = wp.NazivPaket.Trim(),
+                             PaketId = wkp.PaketId,
+                             NazivPaket = tmp == null ? null : tmp.NazivPaket.Trim(),
                              DatPocPaket = wkp.DatPocPaket,
                              DatKrajPaket = wkp.DatKrajPaket
                          })
