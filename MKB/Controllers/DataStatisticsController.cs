@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MKB.Data;
 using MKB.Models;
+using System.Reflection;
 
 namespace MKB.Controllers
 {
@@ -95,18 +96,21 @@ namespace MKB.Controllers
                          join wka in _db.KbWebKorisnikAktivnosti
                          on new { ModulId = wm.ModulId, PodModulId = wm.PodModulId } equals new { ModulId = wka.ModulId ?? 0, PodModulId = wka.PodModulId ?? 0 }
                          join wp in _db.KbWebPaketiM
-                         on wka.PaketId equals wp.PaketId into wpJoin
-                         from wp in wpJoin.DefaultIfEmpty() // Left join
+                         on wka.PaketId equals wp.PaketId into wpGroup
+                         from wp in wpGroup.DefaultIfEmpty() // Left join equivalent
                          where wm.Cena > 0 && wm.Poeni > 0
                          group new { wka, wp } by new { wm.ModulId, wm.NazivModul, wm.PodModulId, wm.NazivPodModul } into g
                          select new
                          {
-                             ModulId = g.Key.ModulId,
+                             g.Key.ModulId,
                              NazivModul = g.Key.NazivModul.Trim(),
-                             PodModulId = g.Key.PodModulId,
+                             g.Key.PodModulId,
                              NazivPodModul = g.Key.NazivPodModul.Trim(),
-                             Vkupno_Denari = g.Sum(x => x.wka.Cena + (x.wka.Poeni > 0 ? x.wka.Poeni * (x.wp != null ? x.wp.CenaPoen : 0) : 0)),
-                             Vkupno_Poeni = g.Sum(x => x.wka.Poeni)
+                             Vkupno_Denari = g.Sum(x => x.wka.Cena + (
+                                 x.wka.PaketId != null && x.wka.Poeni > 0 && (x.wka.TipUsluga == 1 || x.wka.TipUsluga == 2 || x.wka.TipUsluga == 6)
+                                 ? x.wka.Poeni * (x.wp != null ? x.wp.CenaPoen : 0) : 0)),
+                             Vkupno_Poeni = g.Sum(x => x.wka.Poeni > 0 && (x.wka.TipUsluga == 1 || x.wka.TipUsluga == 2 || x.wka.TipUsluga == 6)
+                                 ? x.wka.Poeni : 0)
                          })
                          .OrderByDescending(x => x.Vkupno_Denari);
 
@@ -301,6 +305,7 @@ namespace MKB.Controllers
 
 
 
+
         //- Корисници со непотврдена Email адреса   !!!!OK
         [HttpGet("KorisniciSoNepotvrdenEmail")]
         public IActionResult KorisniciSoNepotvrdenEmail()
@@ -310,8 +315,9 @@ namespace MKB.Controllers
                          select new
                          {
                              anu.Id,
-                             anu.UserWebId
-                         });
+                             anu.UserWebId,
+                             IsPravnoLice = anu.LegalEntityId != null ? "YES" : "NO"
+                         }).OrderByDescending(x => x.IsPravnoLice);
 
             return Ok(query);
         }
