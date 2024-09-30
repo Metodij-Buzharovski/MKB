@@ -279,8 +279,8 @@ namespace MKB.Controllers
 
         //- компании кои имаат доплатено за дополнителни поени при претплата на пакет
         //(hint: во истата активност за пакет ќе е пополнета колоната за дополнителни поени во база)   !!!!OK
-        [HttpGet("KompaniiKoiDoplatileZaPoeni")]
-        public IActionResult KompaniiKoiDoplatileZaPoeni()
+        [HttpGet("KompaniiKoiDoplatileZaPoeniPriPretplataNaPaket")]
+        public IActionResult KompaniiKoiDoplatileZaPoeniPriPretplataNaPaket()
         {
             var query = (from wka in _db.KbWebKorisnikAktivnosti
                          join anu in _db.AspNetUsers on wka.KorisnikWebId equals anu.UserWebId
@@ -295,6 +295,32 @@ namespace MKB.Controllers
                              CompanyName = g.Key.CompanyName,
                              PaketId = g.Key.PaketId,
                              NazivPaket = g.Key.NazivPaket.Trim(),
+                             DopolnitelniPoeni = g.Sum(x => x.Poeni)
+                         })
+                      .OrderByDescending(x => x.DopolnitelniPoeni)
+                      .ToList();
+
+            return Ok(query);
+        }
+
+
+
+        //- компании кои имаат доплатено за дополнителни поени при претплата на пакет
+        //(hint: во истата активност за пакет ќе е пополнета колоната за дополнителни поени во база)   !!!!OK
+        [HttpGet("KompaniiKoiDoplatileZaPoeniPoslePretplataNaPaket")]
+        public IActionResult KompaniiKoiDoplatileZaPoeniPoslePretplataNaPaket()
+        {
+            var query = (from wka in _db.KbWebKorisnikAktivnosti
+                         join anu in _db.AspNetUsers on wka.KorisnikWebId equals anu.UserWebId
+                         join pl in _db.KbWebPravniLica on anu.LegalEntityId equals pl.LegalEntityId
+                         join wp in _db.KbWebPaketiM on wka.PaketId equals wp.PaketId
+                         where wka.TipUsluga == 4 && wka.Poeni > 0
+                         group wka by new { anu.UserWebId, pl.LegalEntityId, pl.CompanyName } into g
+                         select new
+                         {
+                             UserWebID = g.Key.UserWebId,
+                             LegalEntityId = g.Key.LegalEntityId,
+                             CompanyName = g.Key.CompanyName,
                              DopolnitelniPoeni = g.Sum(x => x.Poeni)
                          })
                       .OrderByDescending(x => x.DopolnitelniPoeni)
